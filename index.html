@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vaanam — வானம்</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-top:#4A90D9;
+    --sky-mid:#7BB3E8;
+    --sky-bottom:#DCEBF7;
+    --ink:#12203A;
+    --ink-soft:rgba(18,32,58,0.62);
+    --paper:rgba(255,255,255,0.55);
+    --line:rgba(18,32,58,0.14);
+    --accent:#E8895A;
+    --transition-slow: 1.4s cubic-bezier(.4,0,.2,1);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    background:linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-bottom) 100%);
+    transition: background var(--transition-slow);
+    overflow-x:hidden;
+  }
+  .tamil{ font-family:'Noto Sans Tamil', sans-serif; }
+  .sky-scene{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .celestial{
+    position:absolute; width:120px; height:120px; border-radius:50%;
+    left:72%; top:18%; transform:translate(-50%,-50%);
+    transition: top var(--transition-slow), left var(--transition-slow), opacity var(--transition-slow);
+  }
+  .celestial.sun{ background:radial-gradient(circle at 35% 30%, #FFF6DC, #FFD873 55%, #FFB74A 100%); box-shadow:0 0 90px 30px rgba(255,215,120,0.55); }
+  .celestial.moon{ background:radial-gradient(circle at 35% 30%, #FFFFFF, #E4E9F5 55%, #B9C4DD 100%); box-shadow:0 0 60px 18px rgba(230,235,250,0.45); }
+  .stars{ position:absolute; inset:0; opacity:0; transition:opacity var(--transition-slow); }
+  .star{ position:absolute; width:2px; height:2px; background:#fff; border-radius:50%; animation:twinkle 3.5s ease-in-out infinite; }
+  @keyframes twinkle{ 0%,100%{opacity:.25;} 50%{opacity:1;} }
+  .cloud{ position:absolute; background:#fff; border-radius:100px; opacity:0.85; filter:blur(0.5px); }
+  .cloud::before, .cloud::after{ content:""; position:absolute; background:inherit; border-radius:50%; }
+  .cloud.c1{ width:180px;height:56px; top:14%; left:-10%; animation:drift 55s linear infinite; }
+  .cloud.c1::before{ width:90px;height:90px; top:-40px; left:20px; }
+  .cloud.c1::after{ width:70px;height:70px; top:-26px; left:100px; }
+  .cloud.c2{ width:140px;height:44px; top:26%; left:-20%; animation:drift 70s linear infinite; animation-delay:-20s; opacity:0.7;}
+  .cloud.c2::before{ width:70px;height:70px; top:-30px; left:15px; }
+  .cloud.c2::after{ width:55px;height:55px; top:-20px; left:75px; }
+  .cloud.c3{ width:200px;height:60px; top:8%; left:-15%; animation:drift 90s linear infinite; animation-delay:-45s; opacity:0.6;}
+  .cloud.c3::before{ width:100px;height:100px; top:-45px; left:25px; }
+  .cloud.c3::after{ width:80px;height:80px; top:-30px; left:115px; }
+  @keyframes drift{ from{ transform:translateX(0);} to{ transform:translateX(140vw);} }
+  .rain{ position:absolute; inset:0; opacity:0; transition:opacity 0.8s; }
+  .drop{ position:absolute; top:-10%; width:2px; height:18px; background:linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.65)); animation:fall linear infinite; }
+  @keyframes fall{ to{ transform:translateY(120vh); } }
+  @media (prefers-reduced-motion: reduce){ .cloud, .drop, .star{ animation:none !important; } }
+  .wrap{ position:relative; z-index:1; max-width:760px; margin:0 auto; padding: 48px 24px 80px; }
+  .search-row{ display:flex; gap:8px; align-items:center; background:var(--paper); backdrop-filter:blur(14px); border:1px solid var(--line); border-radius:999px; padding:6px 6px 6px 20px; }
+  .search-row input{ flex:1; border:none; background:transparent; outline:none; font-family:'Inter'; font-size:15px; color:var(--ink); }
+  .search-row input::placeholder{ color:var(--ink-soft); }
+  .search-row button{ border:none; background:var(--ink); color:#fff; font-family:'Inter'; font-weight:600; font-size:14px; padding:10px 20px; border-radius:999px; cursor:pointer; transition:background .2s; }
+  .search-row button:hover{ background:var(--accent); }
+  .search-row button:focus-visible, .search-row input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .locate-btn{ background:none;border:none;cursor:pointer;color:var(--ink-soft);font-size:18px; padding:6px; line-height:1; }
+  .locate-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px;}
+  .hero{ text-align:center; margin-top:64px; }
+  .place{ font-size:19px; font-weight:600; letter-spacing:0.3px; color:var(--ink); }
+  .place .country{ font-weight:400; color:var(--ink-soft); }
+  .temp{ font-family:'Fraunces', serif; font-weight:400; font-size:clamp(96px, 22vw, 168px); line-height:0.95; margin:8px 0 0; letter-spacing:-2px; }
+  .temp sup{ font-size:0.32em; font-weight:300; top:-0.5em; }
+  .condition{ font-size:17px; color:var(--ink-soft); margin-top:2px; }
+  .mood{ margin-top:20px; font-size:15px; color:var(--ink-soft); font-style:italic; }
+  .mood .ta{ font-style:normal; display:block; margin-bottom:2px; color:var(--ink); font-size:15px; }
+  .stat-row{ display:flex; justify-content:center; gap:28px; margin-top:34px; flex-wrap:wrap; }
+  .stat{ text-align:center; }
+  .stat .val{ font-size:16px; font-weight:600; }
+  .stat .lab{ font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:var(--ink-soft); margin-top:2px; }
+  .panel{ background:var(--paper); backdrop-filter:blur(14px); border:1px solid var(--line); border-radius:24px; padding:22px; margin-top:36px; }
+  .panel h2{ font-family:'Inter'; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--ink-soft); margin:0 0 16px; }
+  .hourly-scroll{ display:flex; gap:0; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin; }
+  .hour{ flex:0 0 auto; width:64px; text-align:center; padding:6px 0; border-right:1px solid var(--line); }
+  .hour:last-child{ border-right:none; }
+  .hour .t{ font-size:11px; color:var(--ink-soft); }
+  .hour .ic{ font-size:22px; margin:8px 0; }
+  .hour .tmp{ font-size:14px; font-weight:600; }
+  .days{ display:flex; flex-direction:column; }
+  .day{ display:grid; grid-template-columns: 84px 1fr auto auto; align-items:center; gap:14px; padding:11px 2px; border-bottom:1px solid var(--line); font-size:14px; }
+  .day:last-child{ border-bottom:none; }
+  .day .dname{ font-weight:600; }
+  .day .dic{ font-size:19px; text-align:center; }
+  .day .range{ color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+  .day .lo{ color:var(--ink-soft); }
+  .footer-note{ text-align:center; margin-top:30px; font-size:12px; color:var(--ink-soft); }
+  .footer-note .ta{ font-family:'Noto Sans Tamil'; display:block; margin-bottom:4px; }
+  .state-msg{ text-align:center; margin-top:60px; color:var(--ink-soft); font-size:14px; }
+  .hidden{ display:none !important; }
+  @media (max-width:480px){ .stat-row{ gap:18px; } .day{ grid-template-columns: 66px 1fr auto auto; font-size:13px; } }
+</style>
+</head>
+<body>
+
+<div class="sky-scene" aria-hidden="true">
+  <div class="stars" id="stars"></div>
+  <div class="celestial sun" id="celestial"></div>
+  <div class="cloud c1" id="cloud1"></div>
+  <div class="cloud c2" id="cloud2"></div>
+  <div class="cloud c3" id="cloud3"></div>
+  <div class="rain" id="rain"></div>
+</div>
+
+<div class="wrap">
+  <form class="search-row" id="searchForm" role="search">
+    <button type="button" class="locate-btn" id="locateBtn" title="Use my location" aria-label="Use my current location">📍</button>
+    <input type="text" id="cityInput" placeholder="Search a city — Chennai, Kuala Lumpur, Singapore…" autocomplete="off">
+    <button type="submit">Search</button>
+  </form>
+
+  <div id="loadingMsg" class="state-msg">Finding the sky over Chennai…</div>
+  <div id="errorMsg" class="state-msg hidden"></div>
+
+  <div id="content" class="hidden">
+    <div class="hero">
+      <div class="place"><span id="placeName">—</span> <span class="country" id="placeCountry"></span></div>
+      <div class="temp" id="tempMain">—<sup>°C</sup></div>
+      <div class="condition" id="conditionText">—</div>
+      <div class="mood">
+        <span class="ta" id="moodTa"></span>
+        <span id="moodEn"></span>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="val" id="feelsLike">—</div><div class="lab">Feels like</div></div>
+        <div class="stat"><div class="val" id="humidity">—</div><div class="lab">Humidity</div></div>
+        <div class="stat"><div class="val" id="wind">—</div><div class="lab">Wind</div></div>
+        <div class="stat"><div class="val" id="pressure">—</div><div class="lab">Pressure</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Next hours</h2>
+      <div class="hourly-scroll" id="hourlyScroll"></div>
+    </div>
+
+    <div class="panel">
+      <h2>5-day outlook</h2>
+      <div class="days" id="daysList"></div>
+    </div>
+
+    <div class="footer-note">
+      <span class="ta">வானம் பார்த்து, நாள் திட்டமிடுங்கள்</span>
+      Data from OpenWeatherMap · Vaanam
+    </div>
+  </div>
+</div>
+
+<!-- config.js defines window.OPENWEATHER_API_KEY. It is generated at deploy time and is
+     NOT committed to the repo (see .gitignore + GitHub Actions workflow). -->
+<script src="config.js"></script>
+<script>
+(function(){
+  const API_KEY = (window.OPENWEATHER_API_KEY || '').trim();
+
+  const els = {
+    form: document.getElementById('searchForm'),
+    input: document.getElementById('cityInput'),
+    locateBtn: document.getElementById('locateBtn'),
+    loading: document.getElementById('loadingMsg'),
+    error: document.getElementById('errorMsg'),
+    content: document.getElementById('content'),
+    placeName: document.getElementById('placeName'),
+    placeCountry: document.getElementById('placeCountry'),
+    tempMain: document.getElementById('tempMain'),
+    conditionText: document.getElementById('conditionText'),
+    moodTa: document.getElementById('moodTa'),
+    moodEn: document.getElementById('moodEn'),
+    feelsLike: document.getElementById('feelsLike'),
+    humidity: document.getElementById('humidity'),
+    wind: document.getElementById('wind'),
+    pressure: document.getElementById('pressure'),
+    hourlyScroll: document.getElementById('hourlyScroll'),
+    daysList: document.getElementById('daysList'),
+    celestial: document.getElementById('celestial'),
+    stars: document.getElementById('stars'),
+    rain: document.getElementById('rain'),
+    clouds: [document.getElementById('cloud1'), document.getElementById('cloud2'), document.getElementById('cloud3')]
+  };
+
+  // OpenWeatherMap condition code groups -> {icon, group}
+  function ownGroup(code){
+    if(code >= 200 && code < 300) return {icon:'⛈️', group:'storm', label:'Thunderstorm'};
+    if(code >= 300 && code < 400) return {icon:'🌦️', group:'rain', label:'Drizzle'};
+    if(code >= 500 && code < 600) return {icon:'🌧️', group:'rain', label:'Rain'};
+    if(code >= 600 && code < 700) return {icon:'🌨️', group:'snow', label:'Snow'};
+    if(code >= 700 && code < 800) return {icon:'🌫️', group:'cloud', label:'Mist/Haze'};
+    if(code === 800) return {icon:'☀️', group:'clear', label:'Clear sky'};
+    if(code > 800) return {icon:'☁️', group:'cloud', label:'Cloudy'};
+    return {icon:'🌡️', group:'clear', label:'—'};
+  }
+
+  const MOODS = {
+    clear_day:['இன்று வானம் தெளிவு', 'Clear skies — a good day to look up.'],
+    clear_night:['நட்சத்திரங்கள் தெரியும் இரவு', 'A starlit night, calm and quiet.'],
+    cloud_day:['மேகமூட்டமான நாள்', 'Soft grey light, easy on the eyes.'],
+    cloud_night:['மேகமூடிய இரவு', 'Clouds hiding the stars tonight.'],
+    rain_day:['மழை பொழியும் நாள்', 'Rain today — keep an umbrella close.'],
+    rain_night:['மழை நிறைந்த இரவு', 'A rainy night, good for slow thoughts.'],
+    storm_day:['இடி மின்னலுடன் மழை', 'Thunder in the air — stay indoors if you can.'],
+    storm_night:['இடியுடன் கூடிய இரவு', 'A stormy night — best watched from inside.'],
+    snow_day:['பனி பொழியும் நாள்', 'Snow falling — the world goes quiet.'],
+    snow_night:['பனி நிறைந்த இரவு', 'A snowy night, soft and still.'],
+  };
+
+  function setSky(group, isDay){
+    const palettes = {
+      clear_day:  ['#4A90D9','#7BB3E8','#DCEBF7'],
+      clear_night:['#0B1330','#141C42','#1B2144'],
+      cloud_day:  ['#7C93A8','#A7BAC9','#DCE4EA'],
+      cloud_night:['#161F33','#232D45','#2C3652'],
+      rain_day:   ['#5B6B7D','#7C8B9C','#A9B6C1'],
+      rain_night: ['#12182A','#1D2438','#2A3245'],
+      storm_day:  ['#3E4A5C','#5A6779','#7C8896'],
+      storm_night:['#0A0E1C','#151A2C','#1E2438'],
+      snow_day:   ['#9FB6C9','#C7D8E4','#EEF4F8'],
+      snow_night: ['#1A2438','#26314A','#333F5A'],
+    };
+    const key = `${group}_${isDay?'day':'night'}`;
+    const p = palettes[key] || palettes.clear_day;
+    document.body.style.background = `linear-gradient(180deg, ${p[0]} 0%, ${p[1]} 45%, ${p[2]} 100%)`;
+    document.documentElement.style.setProperty('--ink', isDay ? '#12203A' : '#EDEFF6');
+    document.documentElement.style.setProperty('--ink-soft', isDay ? 'rgba(18,32,58,0.62)' : 'rgba(237,239,246,0.62)');
+    document.documentElement.style.setProperty('--line', isDay ? 'rgba(18,32,58,0.14)' : 'rgba(237,239,246,0.18)');
+    document.documentElement.style.setProperty('--paper', isDay ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.08)');
+
+    els.celestial.className = 'celestial ' + (isDay ? 'sun' : 'moon');
+    els.stars.style.opacity = isDay ? '0' : '1';
+    const showClouds = (group === 'cloud' || group === 'rain' || group === 'storm' || group === 'snow');
+    els.clouds.forEach(c => c.style.opacity = showClouds ? '' : '0');
+    els.rain.style.opacity = (group === 'rain' || group === 'storm') ? '1' : '0';
+  }
+
+  function buildStars(){
+    let html = '';
+    for(let i=0;i<60;i++){
+      const x = Math.random()*100, y = Math.random()*60, d = (Math.random()*3).toFixed(2);
+      html += `<div class="star" style="left:${x}%;top:${y}%;animation-delay:${d}s;"></div>`;
+    }
+    els.stars.innerHTML = html;
+  }
+  function buildRain(){
+    let html = '';
+    for(let i=0;i<70;i++){
+      const x = Math.random()*100, dur = (0.5+Math.random()*0.6).toFixed(2), delay=(Math.random()*2).toFixed(2);
+      html += `<div class="drop" style="left:${x}%;animation-duration:${dur}s;animation-delay:${delay}s;"></div>`;
+    }
+    els.rain.innerHTML = html;
+  }
+  buildStars(); buildRain();
+
+  function formatHour(unixSec, tzOffsetSec){
+    const d = new Date((unixSec + tzOffsetSec) * 1000);
+    let h = d.getUTCHours();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if(h===0) h = 12;
+    return `${h}${ampm}`;
+  }
+  function formatDay(unixSec, tzOffsetSec, idx){
+    if(idx===0) return 'Today';
+    const d = new Date((unixSec + tzOffsetSec) * 1000);
+    return d.toLocaleDateString('en-US', {weekday:'short', timeZone:'UTC'});
+  }
+
+  async function geocode(name){
+    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(name)}&limit=1&appid=${API_KEY}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Geocoding failed');
+    const data = await res.json();
+    if(!data.length) throw new Error('City not found');
+    return { lat:data[0].lat, lon:data[0].lon, name:data[0].name, country:data[0].country || '' };
+  }
+
+  async function fetchCurrent(lat, lon){
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Current weather fetch failed');
+    return res.json();
+  }
+
+  async function fetchForecast(lat, lon){
+    const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Forecast fetch failed');
+    return res.json();
+  }
+
+  function aggregateDaily(list, tzOffsetSec){
+    // Group OWM's 3-hour steps into calendar days (using city-local date)
+    const days = {};
+    list.forEach(item => {
+      const localDate = new Date((item.dt + tzOffsetSec) * 1000);
+      const key = localDate.toISOString().slice(0,10);
+      if(!days[key]) days[key] = { dt:item.dt, temps:[], middayCode:null, middayDiff:Infinity };
+      days[key].temps.push(item.main.temp);
+      const hour = localDate.getUTCHours();
+      const diff = Math.abs(hour - 13);
+      if(diff < days[key].middayDiff){
+        days[key].middayDiff = diff;
+        days[key].middayCode = item.weather[0].id;
+      }
+    });
+    return Object.keys(days).slice(0,5).map(key => {
+      const d = days[key];
+      return {
+        dt: d.dt,
+        max: Math.max(...d.temps),
+        min: Math.min(...d.temps),
+        code: d.middayCode
+      };
+    });
+  }
+
+  function render(place, current, forecast){
+    els.placeName.textContent = place.name;
+    els.placeCountry.textContent = place.country || '';
+
+    const tzOffset = current.timezone || 0;
+    const code = current.weather[0].id;
+    const info = ownGroup(code);
+    const isDay = (current.dt > current.sys.sunrise && current.dt < current.sys.sunset);
+
+    els.tempMain.innerHTML = `${Math.round(current.main.temp)}<sup>°C</sup>`;
+    els.conditionText.textContent = `${info.icon} ${current.weather[0].description}`;
+    els.feelsLike.textContent = `${Math.round(current.main.feels_like)}°`;
+    els.humidity.textContent = `${current.main.humidity}%`;
+    els.wind.textContent = `${Math.round(current.wind.speed * 3.6)} km/h`;
+    els.pressure.textContent = `${current.main.pressure} hPa`;
+
+    const moodKey = `${info.group}_${isDay?'day':'night'}`;
+    const mood = MOODS[moodKey] || MOODS.clear_day;
+    els.moodTa.textContent = mood[0];
+    els.moodEn.textContent = mood[1];
+
+    setSky(info.group, isDay);
+
+    let hHtml = '';
+    forecast.list.slice(0,8).forEach((item, i) => {
+      const hInfo = ownGroup(item.weather[0].id);
+      hHtml += `<div class="hour">
+        <div class="t">${i===0 ? 'Now' : formatHour(item.dt, tzOffset)}</div>
+        <div class="ic">${hInfo.icon}</div>
+        <div class="tmp">${Math.round(item.main.temp)}°</div>
+      </div>`;
+    });
+    els.hourlyScroll.innerHTML = hHtml;
+
+    const daily = aggregateDaily(forecast.list, tzOffset);
+    let dHtml = '';
+    daily.forEach((d, i) => {
+      const dInfo = ownGroup(d.code);
+      dHtml += `<div class="day">
+        <div class="dname">${formatDay(d.dt, tzOffset, i)}</div>
+        <div class="dic">${dInfo.icon}</div>
+        <div class="range">${Math.round(d.max)}°</div>
+        <div class="lo">${Math.round(d.min)}°</div>
+      </div>`;
+    });
+    els.daysList.innerHTML = dHtml;
+
+    els.loading.classList.add('hidden');
+    els.error.classList.add('hidden');
+    els.content.classList.remove('hidden');
+  }
+
+  async function loadCity(name){
+    if(!API_KEY){
+      els.loading.classList.add('hidden');
+      els.error.textContent = 'No OpenWeatherMap API key found. See README for setup.';
+      els.error.classList.remove('hidden');
+      return;
+    }
+    els.loading.textContent = `Finding the sky over ${name}…`;
+    els.loading.classList.remove('hidden');
+    els.error.classList.add('hidden');
+    els.content.classList.add('hidden');
+    try{
+      const place = await geocode(name);
+      const [current, forecast] = await Promise.all([fetchCurrent(place.lat, place.lon), fetchForecast(place.lat, place.lon)]);
+      render(place, current, forecast);
+    }catch(err){
+      els.loading.classList.add('hidden');
+      els.error.textContent = `Couldn't find "${name}". Try a different spelling or a nearby larger city.`;
+      els.error.classList.remove('hidden');
+    }
+  }
+
+  async function loadCoords(lat, lon){
+    if(!API_KEY){
+      els.error.textContent = 'No OpenWeatherMap API key found. See README for setup.';
+      els.error.classList.remove('hidden');
+      return;
+    }
+    els.loading.textContent = `Finding the sky above you…`;
+    els.loading.classList.remove('hidden');
+    els.error.classList.add('hidden');
+    els.content.classList.add('hidden');
+    try{
+      const [current, forecast] = await Promise.all([fetchCurrent(lat, lon), fetchForecast(lat, lon)]);
+      render({name: current.name || 'Your location', country: current.sys ? current.sys.country : ''}, current, forecast);
+    }catch(err){
+      els.loading.classList.add('hidden');
+      els.error.textContent = `Couldn't load weather for your location.`;
+      els.error.classList.remove('hidden');
+    }
+  }
+
+  els.form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const v = els.input.value.trim();
+    if(v) loadCity(v);
+  });
+
+  els.locateBtn.addEventListener('click', function(){
+    if(!navigator.geolocation){
+      els.error.textContent = 'Location access is not available in this browser.';
+      els.error.classList.remove('hidden');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => loadCoords(pos.coords.latitude, pos.coords.longitude),
+      () => { els.error.textContent = 'Location permission denied — search a city instead.'; els.error.classList.remove('hidden'); }
+    );
+  });
+
+  loadCity('Chennai');
+})();
+</script>
+</body>
+</html>
