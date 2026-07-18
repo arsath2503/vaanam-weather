@@ -6,112 +6,41 @@
 <title>Vaanam — வானம்</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   :root{
-    --ink:#12203A;
-    --ink-soft:rgba(18,32,58,0.62);
-    --paper:rgba(255,255,255,0.55);
-    --paper-edge:rgba(255,255,255,0.75);
-    --line:rgba(18,32,58,0.14);
-    --accent:#E8895A;
-    --land-far:#2E4258;
-    --land-near:#16232F;
-    --transition-slow: 1.4s cubic-bezier(.4,0,.2,1);
+    --ink:#12203A; --ink-soft:rgba(18,32,58,0.62);
+    --paper:rgba(255,255,255,0.55); --paper-edge:rgba(255,255,255,0.75);
+    --line:rgba(18,32,58,0.14); --accent:#E8895A;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    font-family:'Inter', sans-serif;
-    color:var(--ink);
-    min-height:100vh;
-    background:linear-gradient(180deg, #4A90D9 0%, #7BB3E8 45%, #DCEBF7 100%);
-    transition: background var(--transition-slow);
-    overflow-x:hidden;
-  }
+  html,body{margin:0;padding:0; background:#4A90D9;}
+  body{ font-family:'Inter', sans-serif; color:var(--ink); min-height:100vh; overflow-x:hidden; }
   .tamil{ font-family:'Noto Sans Tamil', sans-serif; }
 
-  .sky-scene{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  #scene-container{ position:fixed; inset:0; z-index:0; }
+  #scene-container canvas{ display:block; width:100%; height:100%; }
 
-  .sun-rays{
-    position:absolute; width:480px; height:480px; left:72%; top:16%;
-    transform:translate(-50%,-50%);
-    background:repeating-conic-gradient(rgba(255,244,214,0.35) 0deg 4deg, transparent 4deg 16deg);
-    border-radius:50%;
-    opacity:0; transition:opacity var(--transition-slow);
-    animation: rotateRays 90s linear infinite;
-  }
-  @keyframes rotateRays{ from{transform:translate(-50%,-50%) rotate(0deg);} to{transform:translate(-50%,-50%) rotate(360deg);} }
-
-  .celestial{
-    position:absolute; width:112px; height:112px; border-radius:50%;
-    left:72%; top:16%; transform:translate(-50%,-50%);
-    transition: top var(--transition-slow), left var(--transition-slow), opacity var(--transition-slow);
-  }
-  .celestial.sun{ background:radial-gradient(circle at 35% 30%, #FFF6DC, #FFD873 55%, #FFB74A 100%); box-shadow:0 0 90px 30px rgba(255,215,120,0.55); }
-  .celestial.moon{ background:radial-gradient(circle at 35% 30%, #FFFFFF, #E4E9F5 55%, #B9C4DD 100%); box-shadow:0 0 60px 18px rgba(230,235,250,0.45); }
-
-  .stars{ position:absolute; inset:0 0 30% 0; opacity:0; transition:opacity var(--transition-slow); }
-  .star{ position:absolute; width:2px; height:2px; background:#fff; border-radius:50%; animation:twinkle 3.5s ease-in-out infinite; }
-  @keyframes twinkle{ 0%,100%{opacity:.25;} 50%{opacity:1;} }
-
-  #cloudLayer{ position:absolute; inset:0; }
-  .cloud{ position:absolute; border-radius:100px; filter:blur(1px); }
-  .cloud .puff{ position:absolute; border-radius:50%; background:inherit; }
-  @keyframes driftCloud{ from{ transform:translateX(0);} to{ transform:translateX(160vw);} }
-
-  #birdLayer{ position:absolute; inset:8% 0 40% 0; opacity:0; transition:opacity 1s; }
-  .bird{ position:absolute; width:22px; height:9px; animation: flyAcross linear infinite; }
-  .bird svg{ width:100%; height:100%; display:block; animation: flap 0.9s ease-in-out infinite; transform-origin:center; }
-  @keyframes flyAcross{ from{ transform:translate(-10vw, 0);} to{ transform:translate(110vw, -40px);} }
-  @keyframes flap{ 0%,100%{ transform:scaleY(1);} 50%{ transform:scaleY(0.4);} }
-
-  #fogLayer{ position:absolute; left:0; right:0; bottom:14%; height:26%; opacity:0; transition:opacity 1.2s; overflow:hidden; }
-  .fog-band{ position:absolute; height:60px; width:220%; border-radius:50%; background:rgba(255,255,255,0.30); filter:blur(10px); animation:driftFog linear infinite; }
-  @keyframes driftFog{ from{ transform:translateX(-10%);} to{ transform:translateX(10%);} }
-
-  .landscape{ position:absolute; left:0; right:0; bottom:0; width:100%; transition: filter var(--transition-slow); }
-  .landscape svg{ display:block; width:100%; height:auto; }
-  .land-far{ fill:var(--land-far); transition:fill var(--transition-slow); }
-  .land-near{ fill:var(--land-near); transition:fill var(--transition-slow); }
-
-  .reflection{ position:absolute; left:0; right:0; bottom:0; height:9%; overflow:hidden; opacity:0.55; }
-  .reflection-inner{ position:absolute; inset:0; background:linear-gradient(180deg, var(--land-near), transparent); transition: background var(--transition-slow); }
-  .ripple{ position:absolute; left:-10%; width:120%; height:3px; background:rgba(255,255,255,0.18); border-radius:50%; animation:rippleMove ease-in-out infinite; }
-  @keyframes rippleMove{ 0%,100%{ transform:translateX(0) scaleX(1);} 50%{ transform:translateX(2%) scaleX(1.03);} }
-
-  #windLayer{ position:absolute; inset:0; opacity:0; transition:opacity 0.8s; }
-  .wind-line{ position:absolute; height:2px; width:70px; border-radius:2px; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent); animation: windmove linear infinite; }
-  @keyframes windmove{ from{ transform:translateX(-120px);} to{ transform:translateX(120vw);} }
-
-  #rainLayer{ position:absolute; inset:0; opacity:0; transition:opacity 0.8s; }
-  .drop{ position:absolute; top:-10%; width:2px; height:20px; background:linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.7)); animation: fall linear infinite; }
-  @keyframes fall{ to{ transform:translate(var(--fx,0), 120vh); } }
-
-  #lightningFlash{ position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:5; }
+  #lightningFlash{ position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:1; }
 
   .grain{
-    position:fixed; inset:0; z-index:1; pointer-events:none;
-    opacity:0.05; mix-blend-mode:overlay;
+    position:fixed; inset:0; z-index:2; pointer-events:none;
+    opacity:0.045; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   }
 
-  @media (prefers-reduced-motion: reduce){
-    .cloud, .drop, .star, .wind-line, .sun-rays, .bird, .fog-band, .ripple{ animation:none !important; }
-  }
-
-  .wrap{ position:relative; z-index:2; max-width:760px; margin:0 auto; padding: 48px 24px 80px; }
+  .wrap{ position:relative; z-index:3; max-width:760px; margin:0 auto; padding: 48px 24px 80px; }
 
   .search-wrap{ position:relative; }
   .search-row{
     display:flex; gap:8px; align-items:center;
     background:linear-gradient(180deg, var(--paper-edge), var(--paper));
     backdrop-filter:blur(16px) saturate(1.3);
-    border:1px solid var(--line);
-    border-radius:999px; padding:6px 6px 6px 20px;
+    border:1px solid var(--line); border-radius:999px; padding:6px 6px 6px 20px;
     position:relative; z-index:3;
     box-shadow:0 12px 30px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
   }
-  .search-row input{ flex:1; border:none; background:transparent; outline:none; font-family:'Inter'; font-size:15px; color:var(--ink); }
+  .search-row input{ flex:1; min-width:0; border:none; background:transparent; outline:none; font-family:'Inter'; font-size:15px; color:var(--ink); }
   .search-row input::placeholder{ color:var(--ink-soft); }
   .search-row button{ border:none; background:var(--ink); color:#fff; font-family:'Inter'; font-weight:600; font-size:14px; padding:10px 20px; border-radius:999px; cursor:pointer; transition:background .2s, transform .15s; }
   .search-row button:hover{ background:var(--accent); }
@@ -124,8 +53,8 @@
     position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:2;
     background:linear-gradient(180deg, var(--paper-edge), var(--paper));
     backdrop-filter:blur(18px) saturate(1.3);
-    border:1px solid var(--line); border-radius:18px;
-    overflow:hidden; box-shadow:0 16px 36px rgba(0,0,0,0.16);
+    border:1px solid var(--line); border-radius:18px; overflow:hidden;
+    box-shadow:0 16px 36px rgba(0,0,0,0.16);
   }
   .suggestion-item{ display:flex; flex-direction:column; gap:1px; padding:11px 18px; cursor:pointer; text-align:left; border:none; border-bottom:1px solid var(--line); width:100%; font-family:'Inter'; background:none; }
   .suggestion-item:last-child{ border-bottom:none; }
@@ -134,12 +63,11 @@
   .suggestion-item .s-sub{ font-size:12px; color:var(--ink-soft); }
 
   .hero{
-    text-align:center; margin-top:60px; position:relative;
-    padding:28px 20px 8px;
+    text-align:center; margin-top:60px; position:relative; padding:28px 20px 8px;
     background:radial-gradient(ellipse 70% 100% at 50% 30%, rgba(255,255,255,0.10), rgba(255,255,255,0) 70%);
     border-radius:32px;
   }
-  .hero .temp, .hero .place, .hero .condition, .hero .stat .val{ text-shadow: 0 2px 14px rgba(0,0,0,0.18); }
+  .hero .temp, .hero .place, .hero .condition, .hero .stat .val{ text-shadow: 0 2px 14px rgba(0,0,0,0.25); }
   .place{ font-size:19px; font-weight:600; letter-spacing:0.3px; color:var(--ink); }
   .place .country{ font-weight:400; color:var(--ink-soft); }
   .temp{ font-family:'Fraunces', serif; font-weight:400; font-size:clamp(96px, 22vw, 168px); line-height:0.95; margin:8px 0 0; letter-spacing:-2px; }
@@ -175,67 +103,28 @@
   .day .lo{ color:var(--ink-soft); }
   .footer-note{ text-align:center; margin-top:30px; font-size:12px; color:var(--ink-soft); }
   .footer-note .ta{ font-family:'Noto Sans Tamil'; display:block; margin-bottom:4px; }
-  .state-msg{ text-align:center; margin-top:60px; color:var(--ink-soft); font-size:14px; }
+  .footer-note .signature{ display:block; margin-top:10px; font-weight:600; letter-spacing:0.4px; color:var(--ink); opacity:0.8; }
+  .state-msg{ text-align:center; margin-top:60px; color:var(--ink-soft); font-size:14px; position:relative; z-index:3; }
   .hidden{ display:none !important; }
   @media (max-width:480px){ .stat-row{ gap:18px; } .day{ grid-template-columns: 66px 1fr auto auto; font-size:13px; } }
+  @media (max-width:380px){
+    .wrap{ padding:36px 16px 60px; }
+    .search-row{ padding:4px 4px 4px 14px; gap:4px; }
+    .search-row input{ font-size:14px; }
+    .search-row button{ padding:9px 14px; font-size:13px; }
+    .stat-row{ gap:12px; }
+    .stat .val{ font-size:14px; }
+    .temp{ font-size:clamp(76px, 24vw, 120px); }
+  }
 </style>
 </head>
 <body>
 
-<div class="sky-scene" aria-hidden="true">
-  <div class="stars" id="stars"></div>
-  <div class="sun-rays" id="sunRays"></div>
-  <div class="celestial sun" id="celestial"></div>
-  <div id="cloudLayer"></div>
-  <div id="birdLayer"></div>
-  <div id="fogLayer"></div>
-
-  <div class="landscape" id="landscape">
-    <svg viewBox="0 0 1440 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path class="land-far" d="M0,140 C120,110 240,130 360,115 C480,100 560,125 680,110 C800,96 900,120 1020,108 C1150,96 1300,118 1440,105 L1440,220 L0,220 Z"/>
-      <g class="land-near">
-        <path d="M0,178 C200,165 350,182 520,170 C680,160 820,178 980,166 C1140,156 1300,176 1440,168 L1440,220 L0,220 Z"/>
-        <path d="M300,178 L316,178 L316,160 L322,160 L322,148 L328,148 L328,138 L336,138 L336,128 L344,128 L344,118 L352,118 L352,128 L360,128 L360,138 L368,138 L368,148 L374,148 L374,160 L380,160 L380,178 Z"/>
-        <rect x="120" y="150" width="26" height="28"/>
-        <rect x="150" y="140" width="20" height="38"/>
-        <rect x="900" y="148" width="30" height="30"/>
-        <rect x="940" y="136" width="18" height="42"/>
-        <rect x="965" y="155" width="22" height="23"/>
-        <g transform="translate(60,178)">
-          <path d="M0,0 C-2,-18 2,-34 6,-48" stroke="var(--land-near)" stroke-width="4" fill="none"/>
-          <path d="M6,-48 C-6,-54 -18,-50 -26,-40 M6,-48 C18,-56 30,-52 36,-42 M6,-48 C0,-62 -8,-70 -18,-72 M6,-48 C14,-64 24,-70 34,-68 M6,-48 C4,-60 6,-70 10,-78" stroke="var(--land-near)" stroke-width="4" fill="none" stroke-linecap="round"/>
-        </g>
-        <g transform="translate(230,178) scale(0.85)">
-          <path d="M0,0 C-2,-18 2,-34 6,-48" stroke="var(--land-near)" stroke-width="4" fill="none"/>
-          <path d="M6,-48 C-6,-54 -18,-50 -26,-40 M6,-48 C18,-56 30,-52 36,-42 M6,-48 C0,-62 -8,-70 -18,-72 M6,-48 C14,-64 24,-70 34,-68 M6,-48 C4,-60 6,-70 10,-78" stroke="var(--land-near)" stroke-width="4" fill="none" stroke-linecap="round"/>
-        </g>
-        <g transform="translate(1080,178) scale(1.1)">
-          <path d="M0,0 C-2,-18 2,-34 6,-48" stroke="var(--land-near)" stroke-width="4" fill="none"/>
-          <path d="M6,-48 C-6,-54 -18,-50 -26,-40 M6,-48 C18,-56 30,-52 36,-42 M6,-48 C0,-62 -8,-70 -18,-72 M6,-48 C14,-64 24,-70 34,-68 M6,-48 C4,-60 6,-70 10,-78" stroke="var(--land-near)" stroke-width="4" fill="none" stroke-linecap="round"/>
-        </g>
-        <g transform="translate(1260,178) scale(0.9)">
-          <path d="M0,0 C-2,-18 2,-34 6,-48" stroke="var(--land-near)" stroke-width="4" fill="none"/>
-          <path d="M6,-48 C-6,-54 -18,-50 -26,-40 M6,-48 C18,-56 30,-52 36,-42 M6,-48 C0,-62 -8,-70 -18,-72 M6,-48 C14,-64 24,-70 34,-68 M6,-48 C4,-60 6,-70 10,-78" stroke="var(--land-near)" stroke-width="4" fill="none" stroke-linecap="round"/>
-        </g>
-      </g>
-    </svg>
-  </div>
-
-  <div class="reflection">
-    <div class="reflection-inner" id="reflectionInner"></div>
-    <div class="ripple" style="top:20%; animation-duration:4s;"></div>
-    <div class="ripple" style="top:55%; animation-duration:5.5s; animation-delay:-2s;"></div>
-    <div class="ripple" style="top:80%; animation-duration:6.5s; animation-delay:-4s;"></div>
-  </div>
-
-  <div id="windLayer"></div>
-  <div id="rainLayer"></div>
-  <div id="lightningFlash"></div>
-</div>
+<div id="scene-container"></div>
+<div id="lightningFlash"></div>
 <div class="grain"></div>
 
 <div class="wrap">
-
   <div class="search-wrap">
     <form class="search-row" id="searchForm" role="search" autocomplete="off">
       <button type="button" class="locate-btn" id="locateBtn" title="Use my location" aria-label="Use my current location">📍</button>
@@ -245,12 +134,12 @@
     <div class="suggestions hidden" id="suggestionsList"></div>
   </div>
 
-  <div id="loadingMsg" class="state-msg">Finding the sky over Chennai…</div>
+  <div id="loadingMsg" class="state-msg">Building the sky over Chennai…</div>
   <div id="errorMsg" class="state-msg hidden"></div>
 
   <div id="content" class="hidden">
     <div class="hero">
-      <div class="place"><span id="placeName">—</span> <span class="country" id="placeCountry"></span></div>
+      <div class="place"><span id="placeFlag"></span> <span id="placeName">—</span> <span class="country" id="placeCountry"></span></div>
       <div class="temp" id="tempMain">—<sup>°C</sup></div>
       <div class="condition" id="conditionText">—</div>
       <div class="mood">
@@ -277,7 +166,8 @@
 
     <div class="footer-note">
       <span class="ta">வானம் பார்த்து, நாள் திட்டமிடுங்கள்</span>
-      Data from OpenWeatherMap · Vaanam
+      Data from OpenWeatherMap · Vaanam · 3D scene by Three.js
+      <span class="signature">Created by Arsath</span>
     </div>
   </div>
 </div>
@@ -286,6 +176,435 @@
 <script>
 (function(){
   const API_KEY = (window.OPENWEATHER_API_KEY || '').trim();
+
+  /* ============================================================
+     THREE.JS 3D SCENE
+  ============================================================ */
+  const container = document.getElementById('scene-container');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  container.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(58, window.innerWidth/window.innerHeight, 0.1, 2000);
+  camera.position.set(0, 10, 34);
+  camera.lookAt(0, 8, 0);
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  /* ---------- Sky dome (gradient shader) ---------- */
+  const skyUniforms = {
+    topColor:    { value: new THREE.Color(0x4A90D9) },
+    bottomColor: { value: new THREE.Color(0xDCEBF7) },
+    offset:      { value: 40 },
+    exponent:    { value: 0.65 }
+  };
+  const skyGeo = new THREE.SphereGeometry(600, 32, 16);
+  const skyMat = new THREE.ShaderMaterial({
+    uniforms: skyUniforms,
+    vertexShader: `
+      varying vec3 vWorldPosition;
+      void main(){
+        vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+        vWorldPosition = worldPosition.xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+      }`,
+    fragmentShader: `
+      uniform vec3 topColor;
+      uniform vec3 bottomColor;
+      uniform float offset;
+      uniform float exponent;
+      varying vec3 vWorldPosition;
+      void main(){
+        float h = normalize(vWorldPosition + vec3(0.0, offset, 0.0)).y;
+        gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h,0.0),exponent),0.0)), 1.0);
+      }`,
+    side: THREE.BackSide
+  });
+  const skyMesh = new THREE.Mesh(skyGeo, skyMat);
+  scene.add(skyMesh);
+  let targetTop = new THREE.Color(0x4A90D9);
+  let targetBottom = new THREE.Color(0xDCEBF7);
+
+  /* ---------- Lights ---------- */
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
+  scene.add(ambientLight);
+  const sunLight = new THREE.DirectionalLight(0xfff3d6, 1.1);
+  sunLight.position.set(60, 90, -40);
+  scene.add(sunLight);
+  let baseSunIntensity = 1.1;
+
+  /* ---------- Sun / Moon ---------- */
+  const celestialMat = new THREE.MeshBasicMaterial({ color: 0xfff6dc });
+  const celestialMesh = new THREE.Mesh(new THREE.SphereGeometry(9, 24, 24), celestialMat);
+  celestialMesh.position.set(70, 90, -220);
+  scene.add(celestialMesh);
+  const celestialGlow = new THREE.PointLight(0xfff0c8, 0.6, 400);
+  celestialGlow.position.copy(celestialMesh.position);
+  scene.add(celestialGlow);
+
+  /* ---------- Stars ---------- */
+  const starCount = 900;
+  const starGeo = new THREE.BufferGeometry();
+  const starPos = new Float32Array(starCount*3);
+  for(let i=0;i<starCount;i++){
+    const r = 550;
+    const theta = Math.random()*Math.PI*2;
+    const phi = Math.random()*Math.PI*0.5;
+    starPos[i*3]   = r*Math.sin(phi)*Math.cos(theta);
+    starPos[i*3+1] = r*Math.cos(phi)*0.6 + 40;
+    starPos[i*3+2] = r*Math.sin(phi)*Math.sin(theta);
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos,3));
+  const starMat = new THREE.PointsMaterial({ color:0xffffff, size:1.6, transparent:true, opacity:0 });
+  const starPoints = new THREE.Points(starGeo, starMat);
+  scene.add(starPoints);
+
+  /* ---------- Ground + water ---------- */
+  const groundMat = new THREE.MeshStandardMaterial({ color:0x28394B, roughness:0.95 });
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(1000,1000), groundMat);
+  ground.rotation.x = -Math.PI/2;
+  ground.position.y = 0;
+  scene.add(ground);
+
+  const waterGeo = new THREE.PlaneGeometry(200, 60, 40, 12);
+  const waterMat = new THREE.MeshStandardMaterial({ color:0x1B2A3A, roughness:0.25, metalness:0.35, transparent:true, opacity:0.85 });
+  const water = new THREE.Mesh(waterGeo, waterMat);
+  water.rotation.x = -Math.PI/2;
+  water.position.set(0, 0.05, 20);
+  scene.add(water);
+  const waterBasePos = waterGeo.attributes.position.array.slice();
+
+  // distant rolling hills
+  const hillsGroup = new THREE.Group();
+  const hillMat = new THREE.MeshStandardMaterial({ color:0x2E4258, roughness:1 });
+  for(let i=0;i<6;i++){
+    const hill = new THREE.Mesh(new THREE.SphereGeometry(40+Math.random()*30, 16, 12, 0, Math.PI*2, 0, Math.PI/2), hillMat);
+    hill.position.set(-250 + i*100 + (Math.random()*30-15), -10, -140 - Math.random()*40);
+    hill.scale.y = 0.4;
+    hillsGroup.add(hill);
+  }
+  scene.add(hillsGroup);
+
+  /* ---------- Region landmarks ---------- */
+  const landmarkGroup = new THREE.Group();
+  scene.add(landmarkGroup);
+  const landmarkMat = new THREE.MeshStandardMaterial({ color:0x16232F, roughness:0.9 });
+
+  function makePalmTree(x,z,scale){
+    const g = new THREE.Group();
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.55,7,6), landmarkMat);
+    trunk.position.y = 3.5;
+    g.add(trunk);
+    for(let i=0;i<6;i++){
+      const frond = new THREE.Mesh(new THREE.ConeGeometry(0.5, 4.2, 4), landmarkMat);
+      frond.position.y = 7;
+      frond.rotation.z = Math.PI/2.3;
+      frond.rotation.y = (i/6)*Math.PI*2;
+      frond.position.x = Math.cos((i/6)*Math.PI*2)*1.4;
+      frond.position.z = Math.sin((i/6)*Math.PI*2)*1.4;
+      g.add(frond);
+    }
+    g.position.set(x, 0, z);
+    g.scale.setScalar(scale);
+    return g;
+  }
+  function makeBuilding(x,z,w,h,d){
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), landmarkMat);
+    m.position.set(x, h/2, z);
+    return m;
+  }
+  function makeGopuram(x,z){
+    const g = new THREE.Group();
+    const levels = 6;
+    for(let i=0;i<levels;i++){
+      const s = 5 - i*0.7;
+      const box = new THREE.Mesh(new THREE.BoxGeometry(s,2,s), landmarkMat);
+      box.position.y = i*2 + 1;
+      g.add(box);
+    }
+    g.position.set(x,0,z);
+    return g;
+  }
+  function makeMinaretDome(x,z){
+    const g = new THREE.Group();
+    const tower = new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,14,10), landmarkMat);
+    tower.position.y = 7;
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(1.6,12,10,0,Math.PI*2,0,Math.PI/2), landmarkMat);
+    dome.position.y = 14.6;
+    g.add(tower, dome);
+    g.position.set(x,0,z);
+    return g;
+  }
+  function makePagoda(x,z){
+    const g = new THREE.Group();
+    for(let i=0;i<4;i++){
+      const s = 4.5 - i*0.9;
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(s,1.4,4), landmarkMat);
+      roof.position.y = i*2.6 + 1.5;
+      roof.rotation.y = Math.PI/4;
+      g.add(roof);
+    }
+    g.position.set(x,0,z);
+    return g;
+  }
+
+  const REGION_MAP = {
+    IN:'south_asia', LK:'south_asia', BD:'south_asia', NP:'south_asia', PK:'south_asia',
+    MY:'se_asia', SG:'se_asia', TH:'se_asia', ID:'se_asia', PH:'se_asia', VN:'se_asia', KH:'se_asia', MM:'se_asia',
+    AE:'middle_east', SA:'middle_east', QA:'middle_east', OM:'middle_east', KW:'middle_east', BH:'middle_east', EG:'middle_east',
+    JP:'east_asia', CN:'east_asia', KR:'east_asia', TW:'east_asia', HK:'east_asia',
+  };
+  function regionFor(cc){ return REGION_MAP[(cc||'').toUpperCase()] || 'western'; }
+
+  function buildLandmarks(region){
+    while(landmarkGroup.children.length) landmarkGroup.remove(landmarkGroup.children[0]);
+    if(region === 'south_asia'){
+      landmarkGroup.add(makeGopuram(-6, -20));
+      landmarkGroup.add(makeBuilding(-20,-24,4,7,4));
+      landmarkGroup.add(makeBuilding(18,-22,5,9,4));
+      landmarkGroup.add(makePalmTree(-14,-8,1));
+      landmarkGroup.add(makePalmTree(12,-10,0.85));
+      landmarkGroup.add(makePalmTree(24,-14,1.1));
+      landmarkGroup.add(makePalmTree(-26,-16,0.9));
+    } else if(region === 'se_asia'){
+      landmarkGroup.add(makeBuilding(-4,-30,4,26,4));
+      landmarkGroup.add(makeBuilding(4,-30,4,30,4));
+      landmarkGroup.add(makeBuilding(20,-24,5,14,5));
+      landmarkGroup.add(makePalmTree(-20,-10,1));
+      landmarkGroup.add(makePalmTree(22,-8,0.9));
+    } else if(region === 'middle_east'){
+      landmarkGroup.add(makeMinaretDome(-4,-22));
+      landmarkGroup.add(makeBuilding(-18,-22,5,10,5));
+      landmarkGroup.add(makeBuilding(16,-24,5,12,5));
+      landmarkGroup.add(makePalmTree(-24,-10,1));
+      landmarkGroup.add(makePalmTree(24,-12,0.9));
+    } else if(region === 'east_asia'){
+      landmarkGroup.add(makePagoda(-6,-22));
+      landmarkGroup.add(makeBuilding(-20,-26,5,20,5));
+      landmarkGroup.add(makeBuilding(18,-28,5,24,5));
+    } else {
+      landmarkGroup.add(makeBuilding(-16,-24,5,14,5));
+      landmarkGroup.add(makeBuilding(-6,-28,4,20,4));
+      landmarkGroup.add(makeBuilding(6,-26,5,17,5));
+      landmarkGroup.add(makeBuilding(18,-30,4,23,4));
+    }
+  }
+  buildLandmarks('south_asia');
+
+  /* ---------- Clouds ---------- */
+  const cloudGroup = new THREE.Group();
+  scene.add(cloudGroup);
+  const cloudMat = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:1, transparent:true, opacity:0.88, flatShading:true });
+
+  function makeCloud(depth){
+    const g = new THREE.Group();
+    const puffs = 4 + Math.floor(Math.random()*3);
+    const baseScale = 2 + depth*3;
+    for(let i=0;i<puffs;i++){
+      const s = baseScale * (0.6+Math.random()*0.6);
+      const puff = new THREE.Mesh(new THREE.IcosahedronGeometry(s, 0), cloudMat);
+      puff.position.set(i*baseScale*1.1 - puffs*baseScale*0.5, Math.random()*1.2, Math.random()*1.2);
+      g.add(puff);
+    }
+    g.userData.speed = 0.4 + depth*1.2 + Math.random()*0.4;
+    return g;
+  }
+
+  function rebuildClouds(coverPercent, windKmh){
+    while(cloudGroup.children.length) cloudGroup.remove(cloudGroup.children[0]);
+    if(coverPercent < 5) return;
+    const count = Math.max(2, Math.min(14, Math.round(coverPercent/8)));
+    for(let i=0;i<count;i++){
+      const depth = Math.random();
+      const cloud = makeCloud(depth);
+      cloud.position.set(-150 + Math.random()*300, 55 + Math.random()*35, -60 - depth*140);
+      cloud.userData.speed *= (0.5 + windKmh/40);
+      cloudGroup.add(cloud);
+    }
+  }
+
+  /* ---------- Rain ---------- */
+  const RAIN_COUNT = 3500;
+  const rainGeo = new THREE.BufferGeometry();
+  const rainPos = new Float32Array(RAIN_COUNT*3);
+  for(let i=0;i<RAIN_COUNT;i++){
+    rainPos[i*3]   = (Math.random()-0.5)*260;
+    rainPos[i*3+1] = Math.random()*140;
+    rainPos[i*3+2] = (Math.random()-0.5)*260;
+  }
+  rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos,3));
+  const rainMat = new THREE.PointsMaterial({ color:0xBFD6E8, size:0.35, transparent:true, opacity:0, sizeAttenuation:true });
+  const rainPoints = new THREE.Points(rainGeo, rainMat);
+  scene.add(rainPoints);
+  let rainActive = false;
+  let rainSpeed = 60;
+  let rainWindX = 0;
+
+  /* ---------- Fog ---------- */
+  scene.fog = new THREE.Fog(0xDCEBF7, 60, 500);
+
+  /* ---------- Lightning ---------- */
+  let lightningTimer = null;
+  const boltMat = new THREE.LineBasicMaterial({ color:0xEAF2FF, transparent:true, opacity:0 });
+  let boltMesh = null;
+  const lightningFlashEl = document.getElementById('lightningFlash');
+
+  function spawnBolt(){
+    if(boltMesh) scene.remove(boltMesh);
+    const pts = [];
+    let x = (Math.random()-0.5)*80, y = 120;
+    pts.push(new THREE.Vector3(x,y,-100));
+    while(y > 20){
+      y -= 8 + Math.random()*8;
+      x += (Math.random()-0.5)*14;
+      pts.push(new THREE.Vector3(x,y,-100));
+    }
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    boltMesh = new THREE.Line(geo, boltMat);
+    scene.add(boltMesh);
+  }
+
+  function startLightning(){
+    stopLightning();
+    function flash(){
+      spawnBolt();
+      boltMat.opacity = 1;
+      sunLight.intensity = baseSunIntensity + 3.5;
+      lightningFlashEl.style.transition = 'opacity 0.08s';
+      lightningFlashEl.style.opacity = '0.7';
+      setTimeout(()=>{
+        lightningFlashEl.style.opacity = '0';
+        boltMat.opacity = 0;
+        sunLight.intensity = baseSunIntensity;
+      }, 110);
+    }
+    function schedule(){
+      const next = 4000 + Math.random()*9000;
+      lightningTimer = setTimeout(()=>{ flash(); schedule(); }, next);
+    }
+    schedule();
+  }
+  function stopLightning(){
+    if(lightningTimer){ clearTimeout(lightningTimer); lightningTimer = null; }
+    lightningFlashEl.style.opacity = '0';
+    boltMat.opacity = 0;
+    sunLight.intensity = baseSunIntensity;
+  }
+
+  /* ---------- Mouse parallax (real 3D depth via camera) ---------- */
+  let mouseX = 0, mouseY = 0;
+  if(!reduceMotion){
+    document.addEventListener('mousemove', e => {
+      mouseX = (e.clientX / window.innerWidth - 0.5);
+      mouseY = (e.clientY / window.innerHeight - 0.5);
+    });
+  }
+
+  /* ---------- Scene configuration from weather data ---------- */
+  function configureScene(group, isDay, windKmh, cloudCoverPct, rainActiveFlag, rainVolume, isStorm, isMist){
+    const palettes = {
+      clear_day:  { top:0x4A90D9, bottom:0xDCEBF7, fog:0xCFE3F3, sunI:1.15, amb:0.6, ground:0x28394B, hill:0x2E4258 },
+      clear_night:{ top:0x0B1330, bottom:0x1B2144, fog:0x141C42, sunI:0.15, amb:0.18, ground:0x080B18, hill:0x1A2340 },
+      cloud_day:  { top:0x7C93A8, bottom:0xDCE4EA, fog:0xB7C4CE, sunI:0.75, amb:0.55, ground:0x2B3A44, hill:0x6E828F },
+      cloud_night:{ top:0x161F33, bottom:0x2C3652, fog:0x232D45, sunI:0.12, amb:0.16, ground:0x0A0E18, hill:0x20293C },
+      mist_day:   { top:0x9AAAB4, bottom:0xE7ECEE, fog:0xD8DFE1, sunI:0.6, amb:0.55, ground:0x3C4A50, hill:0x8FA0A8 },
+      mist_night: { top:0x232C38, bottom:0x48545F, fog:0x333F4B, sunI:0.1, amb:0.18, ground:0x0D1418, hill:0x2A3540 },
+      rain_day:   { top:0x5B6B7D, bottom:0xA9B6C1, fog:0x8C99A6, sunI:0.55, amb:0.5, ground:0x222E38, hill:0x516070 },
+      rain_night: { top:0x12182A, bottom:0x2A3245, fog:0x1D2438, sunI:0.1, amb:0.15, ground:0x080B14, hill:0x1B2333 },
+      storm_day:  { top:0x3E4A5C, bottom:0x7C8896, fog:0x5A6779, sunI:0.5, amb:0.45, ground:0x1A2129, hill:0x3A4552 },
+      storm_night:{ top:0x0A0E1C, bottom:0x1E2438, fog:0x151A2C, sunI:0.08, amb:0.13, ground:0x05070C, hill:0x161B28 },
+      snow_day:   { top:0x9FB6C9, bottom:0xEEF4F8, fog:0xDCE7EC, sunI:0.9, amb:0.6, ground:0x465662, hill:0x9AAAB8 },
+      snow_night: { top:0x1A2438, bottom:0x333F5A, fog:0x26314A, sunI:0.12, amb:0.18, ground:0x0A0F18, hill:0x242E42 },
+    };
+    const key = `${isMist ? 'mist' : group}_${isDay?'day':'night'}`;
+    const p = palettes[key] || palettes.clear_day;
+
+    targetTop.set(p.top);
+    targetBottom.set(p.bottom);
+    scene.fog.color.set(p.fog);
+    scene.fog.near = isMist ? 20 : 60;
+    scene.fog.far = isMist ? 150 : 500;
+    baseSunIntensity = p.sunI;
+    sunLight.intensity = p.sunI;
+    ambientLight.intensity = p.amb;
+    groundMat.color.set(p.ground);
+    hillMat.color.set(p.hill);
+
+    celestialMat.color.set(isDay ? 0xfff6dc : 0xe4e9f5);
+    celestialGlow.color.set(isDay ? 0xfff0c8 : 0xc9d6ee);
+    celestialGlow.intensity = isDay ? 0.6 : 0.35;
+    celestialMesh.position.y = isDay ? 90 : 96;
+    sunLight.position.set(70, celestialMesh.position.y, -220);
+
+    starMat.opacity = isDay ? 0 : 0.9;
+
+    rebuildClouds(group === 'clear' ? Math.min(cloudCoverPct,15) : Math.max(cloudCoverPct, isMist?45:25), windKmh);
+
+    rainActive = rainActiveFlag;
+    rainMat.opacity = rainActive ? 0.55 : 0;
+    rainSpeed = 50 + (rainVolume ? Math.min(1,rainVolume/8)*50 : (isStorm?40:20));
+    rainWindX = Math.max(-8, Math.min(8, (windKmh - 10) / 6));
+
+    if(isStorm) startLightning(); else stopLightning();
+  }
+
+  /* ---------- Animation loop ---------- */
+  const clock = new THREE.Clock();
+  function animate(){
+    requestAnimationFrame(animate);
+    const dt = Math.min(0.05, clock.getDelta());
+    const t = clock.elapsedTime;
+
+    skyUniforms.topColor.value.lerp(targetTop, 0.02);
+    skyUniforms.bottomColor.value.lerp(targetBottom, 0.02);
+
+    cloudGroup.children.forEach(c => {
+      c.position.x += c.userData.speed * dt;
+      if(c.position.x > 200) c.position.x = -200;
+    });
+
+    if(rainActive){
+      const pos = rainGeo.attributes.position.array;
+      for(let i=0;i<RAIN_COUNT;i++){
+        pos[i*3+1] -= rainSpeed*dt;
+        pos[i*3] += rainWindX*dt;
+        if(pos[i*3+1] < 0){ pos[i*3+1] = 140; pos[i*3] = (Math.random()-0.5)*260; pos[i*3+2] = (Math.random()-0.5)*260; }
+      }
+      rainGeo.attributes.position.needsUpdate = true;
+    }
+
+    // water ripple
+    const wPos = waterGeo.attributes.position.array;
+    for(let i=0;i<wPos.length/3;i++){
+      const bx = waterBasePos[i*3], bz = waterBasePos[i*3+2];
+      wPos[i*3+1] = Math.sin(t*0.8 + bx*0.25) * 0.15 + Math.cos(t*0.6 + bz*0.3) * 0.1;
+    }
+    waterGeo.attributes.position.needsUpdate = true;
+    waterGeo.computeVertexNormals();
+
+    // star twinkle
+    starMat.size = 1.4 + Math.sin(t*2)*0.2;
+
+    // camera parallax (true 3D depth)
+    camera.position.x += ((mouseX*6) - camera.position.x) * 0.03;
+    camera.position.y += (10 - (mouseY*3) - camera.position.y) * 0.03;
+    camera.lookAt(0, 8, -20);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  /* ============================================================
+     WEATHER DATA + UI (same logic as before, now feeding the 3D scene)
+  ============================================================ */
 
   const els = {
     form: document.getElementById('searchForm'),
@@ -296,6 +615,7 @@
     error: document.getElementById('errorMsg'),
     content: document.getElementById('content'),
     placeName: document.getElementById('placeName'),
+    placeFlag: document.getElementById('placeFlag'),
     placeCountry: document.getElementById('placeCountry'),
     tempMain: document.getElementById('tempMain'),
     conditionText: document.getElementById('conditionText'),
@@ -306,25 +626,17 @@
     wind: document.getElementById('wind'),
     pressure: document.getElementById('pressure'),
     hourlyScroll: document.getElementById('hourlyScroll'),
-    daysList: document.getElementById('daysList'),
-    celestial: document.getElementById('celestial'),
-    sunRays: document.getElementById('sunRays'),
-    stars: document.getElementById('stars'),
-    cloudLayer: document.getElementById('cloudLayer'),
-    birdLayer: document.getElementById('birdLayer'),
-    fogLayer: document.getElementById('fogLayer'),
-    landscape: document.getElementById('landscape'),
-    reflectionInner: document.getElementById('reflectionInner'),
-    windLayer: document.getElementById('windLayer'),
-    rainLayer: document.getElementById('rainLayer'),
-    lightningFlash: document.getElementById('lightningFlash')
+    daysList: document.getElementById('daysList')
   };
 
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let lightningTimer = null;
   let currentSuggestions = [];
   let activeSuggestionIdx = -1;
   let debounceTimer = null;
+
+  function countryToFlag(cc){
+    if(!cc || cc.length !== 2) return '';
+    return cc.toUpperCase().replace(/./g, ch => String.fromCodePoint(127397 + ch.charCodeAt(0)));
+  }
 
   function ownGroup(code){
     if(code >= 200 && code < 300) return {icon:'⛈️', group:'storm', label:'Thunderstorm'};
@@ -351,199 +663,6 @@
     snow_day:['பனி பொழியும் நாள்', 'Snow falling — the world goes quiet.'],
     snow_night:['பனி நிறைந்த இரவு', 'A snowy night, soft and still.'],
   };
-
-  function setPalette(group, isDay){
-    const palettes = {
-      clear_day:  { sky:['#4A90D9','#7BB3E8','#DCEBF7'], far:'#7CA3C4', near:'#28394B' },
-      clear_night:{ sky:['#0B1330','#141C42','#1B2144'], far:'#1A2340', near:'#080B18' },
-      cloud_day:  { sky:['#7C93A8','#A7BAC9','#DCE4EA'], far:'#6E828F', near:'#2B3A44' },
-      cloud_night:{ sky:['#161F33','#232D45','#2C3652'], far:'#20293C', near:'#0A0E18' },
-      mist_day:   { sky:['#9AAAB4','#BFCBD1','#E7ECEE'], far:'#8FA0A8', near:'#3C4A50' },
-      mist_night: { sky:['#232C38','#333F4B','#48545F'], far:'#2A3540', near:'#0D1418' },
-      rain_day:   { sky:['#5B6B7D','#7C8B9C','#A9B6C1'], far:'#516070', near:'#222E38' },
-      rain_night: { sky:['#12182A','#1D2438','#2A3245'], far:'#1B2333', near:'#080B14' },
-      storm_day:  { sky:['#3E4A5C','#5A6779','#7C8896'], far:'#3A4552', near:'#1A2129' },
-      storm_night:{ sky:['#0A0E1C','#151A2C','#1E2438'], far:'#161B28', near:'#05070C' },
-      snow_day:   { sky:['#9FB6C9','#C7D8E4','#EEF4F8'], far:'#9AAAB8', near:'#465662' },
-      snow_night: { sky:['#1A2438','#26314A','#333F5A'], far:'#242E42', near:'#0A0F18' },
-    };
-    const key = `${group}_${isDay?'day':'night'}`;
-    const p = palettes[key] || palettes.clear_day;
-    document.body.style.background = `linear-gradient(180deg, ${p.sky[0]} 0%, ${p.sky[1]} 45%, ${p.sky[2]} 100%)`;
-    document.documentElement.style.setProperty('--land-far', p.far);
-    document.documentElement.style.setProperty('--land-near', p.near);
-    document.documentElement.style.setProperty('--ink', isDay ? '#12203A' : '#EDEFF6');
-    document.documentElement.style.setProperty('--ink-soft', isDay ? 'rgba(18,32,58,0.62)' : 'rgba(237,239,246,0.62)');
-    document.documentElement.style.setProperty('--line', isDay ? 'rgba(18,32,58,0.14)' : 'rgba(237,239,246,0.18)');
-    document.documentElement.style.setProperty('--paper', isDay ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.08)');
-    document.documentElement.style.setProperty('--paper-edge', isDay ? 'rgba(255,255,255,0.78)' : 'rgba(255,255,255,0.16)');
-    els.reflectionInner.style.background = `linear-gradient(180deg, ${p.near}, transparent)`;
-  }
-
-  function buildStars(){
-    let html = '';
-    for(let i=0;i<70;i++){
-      const x = Math.random()*100, y = Math.random()*70, d = (Math.random()*3).toFixed(2);
-      html += `<div class="star" style="left:${x}%;top:${y}%;animation-delay:${d}s;"></div>`;
-    }
-    els.stars.innerHTML = html;
-  }
-  buildStars();
-
-  function buildClouds(coverPercent, windKmh){
-    els.cloudLayer.innerHTML = '';
-    if(coverPercent < 5) return;
-    const count = Math.max(1, Math.min(9, Math.round(coverPercent / 12)));
-    const baseDuration = Math.max(18, 85 - windKmh * 1.8);
-    for(let i=0;i<count;i++){
-      const depth = Math.random();
-      const scale = 0.6 + depth * 0.9;
-      const w = Math.round(150 * scale);
-      const h = Math.round(46 * scale);
-      const top = 2 + Math.random()*22;
-      const opacity = 0.4 + depth*0.45;
-      const duration = baseDuration * (1.3 - depth*0.6);
-      const delay = -Math.random()*duration;
-      const cloud = document.createElement('div');
-      cloud.className = 'cloud';
-      cloud.style.cssText = `width:${w}px;height:${h}px;top:${top}%;left:-20%;opacity:${opacity.toFixed(2)};background:#fff;animation:driftCloud ${duration.toFixed(1)}s linear infinite;animation-delay:${delay.toFixed(1)}s;`;
-      const puffCount = 3 + Math.floor(Math.random()*2);
-      for(let p=0; p<puffCount; p++){
-        const ps = (0.45 + Math.random()*0.55) * h * 1.6;
-        const px = (p / puffCount) * w + Math.random()*10 - 5;
-        const py = -ps*0.4 + Math.random()*8;
-        const puff = document.createElement('div');
-        puff.className = 'puff';
-        puff.style.cssText = `width:${ps}px;height:${ps}px;left:${px}px;top:${py}px;`;
-        cloud.appendChild(puff);
-      }
-      els.cloudLayer.appendChild(cloud);
-    }
-  }
-
-  function buildBirds(isDay, group){
-    els.birdLayer.innerHTML = '';
-    const show = isDay && (group === 'clear' || group === 'cloud') && !reduceMotion;
-    els.birdLayer.style.opacity = show ? '0.75' : '0';
-    if(!show) return;
-    const count = 2 + Math.floor(Math.random()*2);
-    for(let i=0;i<count;i++){
-      const top = 10 + Math.random()*50;
-      const dur = 14 + Math.random()*10;
-      const delay = -Math.random()*dur;
-      const scale = 0.7 + Math.random()*0.6;
-      const bird = document.createElement('div');
-      bird.className = 'bird';
-      bird.style.cssText = `top:${top}%; transform:scale(${scale.toFixed(2)}); animation-duration:${dur.toFixed(1)}s; animation-delay:${delay.toFixed(1)}s;`;
-      bird.innerHTML = `<svg viewBox="0 0 24 10"><path d="M0,6 C4,0 8,0 12,6 C16,0 20,0 24,6" stroke="rgba(20,30,45,0.65)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`;
-      els.birdLayer.appendChild(bird);
-    }
-  }
-
-  function buildFog(isMist){
-    els.fogLayer.style.opacity = isMist ? '1' : '0';
-    if(!isMist){ els.fogLayer.innerHTML=''; return; }
-    if(els.fogLayer.childElementCount) return;
-    let html = '';
-    for(let i=0;i<4;i++){
-      const top = i * 25 + Math.random()*10;
-      const dur = 30 + Math.random()*20;
-      html += `<div class="fog-band" style="top:${top}%; left:-60%; animation-duration:${dur.toFixed(1)}s; animation-delay:${(-Math.random()*dur).toFixed(1)}s;"></div>`;
-    }
-    els.fogLayer.innerHTML = html;
-  }
-
-  function buildWindLines(windKmh){
-    els.windLayer.innerHTML = '';
-    els.windLayer.style.opacity = windKmh > 18 ? '1' : '0';
-    if(windKmh <= 18) return;
-    const count = Math.min(14, Math.round(windKmh / 3));
-    let html = '';
-    for(let i=0;i<count;i++){
-      const top = Math.random()*100;
-      const dur = Math.max(1.2, 4.5 - windKmh/15);
-      const delay = Math.random()*dur;
-      const w = 40 + Math.random()*60;
-      html += `<div class="wind-line" style="top:${top}%;width:${w}px;animation-duration:${dur.toFixed(2)}s;animation-delay:${-delay.toFixed(2)}s;"></div>`;
-    }
-    els.windLayer.innerHTML = html;
-  }
-
-  function buildRain(group, windDeg, windKmh, rainVolume){
-    if(group !== 'rain' && group !== 'storm'){
-      els.rainLayer.style.opacity = '0';
-      els.rainLayer.innerHTML = '';
-      return;
-    }
-    els.rainLayer.style.opacity = '1';
-    const skew = Math.max(-40, Math.min(40, (windDeg - 180) / 4.5));
-    const intensity = rainVolume ? Math.min(1, rainVolume / 8) : (group === 'storm' ? 0.85 : 0.5);
-    const count = Math.round(50 + intensity * 90);
-    let html = '';
-    for(let i=0;i<count;i++){
-      const x = Math.random()*100;
-      const dur = (0.4 + Math.random()*0.5) / (0.6 + intensity*0.6);
-      const delay = Math.random()*2;
-      html += `<div class="drop" style="left:${x}%;--fx:${skew}px;animation-duration:${dur.toFixed(2)}s;animation-delay:${delay.toFixed(2)}s;"></div>`;
-    }
-    els.rainLayer.innerHTML = html;
-  }
-
-  function startLightning(){
-    stopLightning();
-    function flash(){
-      els.lightningFlash.style.transition = 'opacity 0.08s';
-      els.lightningFlash.style.opacity = '0.85';
-      setTimeout(()=>{ els.lightningFlash.style.opacity = '0'; }, 90);
-      setTimeout(()=>{
-        els.lightningFlash.style.opacity = '0.4';
-        setTimeout(()=>{ els.lightningFlash.style.opacity = '0'; }, 70);
-      }, 180);
-    }
-    function schedule(){
-      const next = 4000 + Math.random()*9000;
-      lightningTimer = setTimeout(()=>{ flash(); schedule(); }, next);
-    }
-    schedule();
-  }
-  function stopLightning(){
-    if(lightningTimer){ clearTimeout(lightningTimer); lightningTimer = null; }
-    els.lightningFlash.style.opacity = '0';
-  }
-
-  function renderSky(current){
-    const code = current.weather[0].id;
-    const info = ownGroup(code);
-    const isDay = (current.dt > current.sys.sunrise && current.dt < current.sys.sunset);
-    const windKmh = current.wind.speed * 3.6;
-    const windDeg = current.wind.deg || 180;
-    const cover = current.clouds ? current.clouds.all : 0;
-    const rainVol = current.rain ? (current.rain['1h'] || current.rain['3h'] || 0) : 0;
-    const isMist = info.group === 'mist';
-
-    setPalette(isMist ? 'mist' : info.group, isDay);
-
-    els.celestial.className = 'celestial ' + (isDay ? 'sun' : 'moon');
-    els.stars.style.opacity = isDay ? '0' : '1';
-    els.sunRays.style.opacity = (isDay && info.group === 'clear') ? '1' : '0';
-
-    buildClouds(info.group === 'clear' ? Math.min(cover,15) : Math.max(cover, isMist ? 40 : 25), windKmh);
-    buildBirds(isDay, isMist ? 'cloud' : info.group);
-    buildFog(isMist);
-    buildWindLines(windKmh);
-    buildRain(info.group, windDeg, windKmh, rainVol);
-
-    if(info.group === 'storm'){ startLightning(); } else { stopLightning(); }
-
-    return { info, isDay };
-  }
-
-  if(!reduceMotion){
-    document.addEventListener('mousemove', function(e){
-      const relX = (e.clientX / window.innerWidth - 0.5);
-      els.landscape.style.transform = `translateX(${(relX * -14).toFixed(1)}px)`;
-    });
-  }
 
   function formatHour(unixSec, tzOffsetSec){
     const d = new Date((unixSec + tzOffsetSec) * 1000);
@@ -597,18 +716,30 @@
   function render(place, current, forecast){
     els.placeName.textContent = place.name;
     els.placeCountry.textContent = place.country || '';
+    els.placeFlag.textContent = countryToFlag(place.country);
 
     const tzOffset = current.timezone || 0;
-    const { info, isDay } = renderSky(current);
+    const code = current.weather[0].id;
+    const info = ownGroup(code);
+    const isDay = (current.dt > current.sys.sunrise && current.dt < current.sys.sunset);
+    const windKmh = current.wind.speed * 3.6;
+    const cover = current.clouds ? current.clouds.all : 0;
+    const rainVol = current.rain ? (current.rain['1h'] || current.rain['3h'] || 0) : 0;
+    const isMist = info.group === 'mist';
+    const isStorm = info.group === 'storm';
+    const rainActiveNow = info.group === 'rain' || info.group === 'storm';
+
+    buildLandmarks(regionFor(place.country));
+    configureScene(info.group, isDay, windKmh, cover, rainActiveNow, rainVol, isStorm, isMist);
 
     els.tempMain.innerHTML = `${Math.round(current.main.temp)}<sup>°C</sup>`;
     els.conditionText.textContent = `${info.icon} ${current.weather[0].description}`;
     els.feelsLike.textContent = `${Math.round(current.main.feels_like)}°`;
     els.humidity.textContent = `${current.main.humidity}%`;
-    els.wind.textContent = `${Math.round(current.wind.speed * 3.6)} km/h`;
+    els.wind.textContent = `${Math.round(windKmh)} km/h`;
     els.pressure.textContent = `${current.main.pressure} hPa`;
 
-    const moodKey = `${info.group}_${isDay?'day':'night'}`;
+    const moodKey = `${isMist?'mist':info.group}_${isDay?'day':'night'}`;
     const mood = MOODS[moodKey] || MOODS.clear_day;
     els.moodTa.textContent = mood[0];
     els.moodEn.textContent = mood[1];
@@ -649,7 +780,7 @@
       els.error.classList.remove('hidden');
       return;
     }
-    els.loading.textContent = `Finding the sky over ${place.name}…`;
+    els.loading.textContent = `Building the sky over ${place.name}…`;
     els.loading.classList.remove('hidden');
     els.error.classList.add('hidden');
     els.content.classList.add('hidden');
@@ -670,7 +801,7 @@
       els.error.classList.remove('hidden');
       return;
     }
-    els.loading.textContent = `Finding the sky over ${name}…`;
+    els.loading.textContent = `Building the sky over ${name}…`;
     els.loading.classList.remove('hidden');
     els.error.classList.add('hidden');
     els.content.classList.add('hidden');
@@ -692,7 +823,7 @@
       els.error.classList.remove('hidden');
       return;
     }
-    els.loading.textContent = `Finding the sky above you…`;
+    els.loading.textContent = `Building the sky above you…`;
     els.loading.classList.remove('hidden');
     els.error.classList.add('hidden');
     els.content.classList.add('hidden');
@@ -744,7 +875,6 @@
       catch(e){ hideSuggestions(); }
     }, 350);
   });
-
   els.input.addEventListener('keydown', function(e){
     if(els.suggestList.classList.contains('hidden')) return;
     const items = els.suggestList.querySelectorAll('.suggestion-item');
