@@ -11,8 +11,11 @@
     --ink:#12203A;
     --ink-soft:rgba(18,32,58,0.62);
     --paper:rgba(255,255,255,0.55);
+    --paper-edge:rgba(255,255,255,0.75);
     --line:rgba(18,32,58,0.14);
     --accent:#E8895A;
+    --land-far:#2E4258;
+    --land-near:#16232F;
     --transition-slow: 1.4s cubic-bezier(.4,0,.2,1);
   }
   *{box-sizing:border-box;}
@@ -27,11 +30,10 @@
   }
   .tamil{ font-family:'Noto Sans Tamil', sans-serif; }
 
-  /* ---------- Sky scene ---------- */
   .sky-scene{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
 
   .sun-rays{
-    position:absolute; width:480px; height:480px; left:72%; top:18%;
+    position:absolute; width:480px; height:480px; left:72%; top:16%;
     transform:translate(-50%,-50%);
     background:repeating-conic-gradient(rgba(255,244,214,0.35) 0deg 4deg, transparent 4deg 16deg);
     border-radius:50%;
@@ -41,96 +43,103 @@
   @keyframes rotateRays{ from{transform:translate(-50%,-50%) rotate(0deg);} to{transform:translate(-50%,-50%) rotate(360deg);} }
 
   .celestial{
-    position:absolute; width:120px; height:120px; border-radius:50%;
-    left:72%; top:18%; transform:translate(-50%,-50%);
+    position:absolute; width:112px; height:112px; border-radius:50%;
+    left:72%; top:16%; transform:translate(-50%,-50%);
     transition: top var(--transition-slow), left var(--transition-slow), opacity var(--transition-slow);
   }
   .celestial.sun{ background:radial-gradient(circle at 35% 30%, #FFF6DC, #FFD873 55%, #FFB74A 100%); box-shadow:0 0 90px 30px rgba(255,215,120,0.55); }
   .celestial.moon{ background:radial-gradient(circle at 35% 30%, #FFFFFF, #E4E9F5 55%, #B9C4DD 100%); box-shadow:0 0 60px 18px rgba(230,235,250,0.45); }
 
-  .stars{ position:absolute; inset:0; opacity:0; transition:opacity var(--transition-slow); }
+  .stars{ position:absolute; inset:0 0 30% 0; opacity:0; transition:opacity var(--transition-slow); }
   .star{ position:absolute; width:2px; height:2px; background:#fff; border-radius:50%; animation:twinkle 3.5s ease-in-out infinite; }
   @keyframes twinkle{ 0%,100%{opacity:.25;} 50%{opacity:1;} }
 
   #cloudLayer{ position:absolute; inset:0; }
-  .cloud{
-    position:absolute;
-    border-radius:100px;
-    filter:blur(1px);
-  }
+  .cloud{ position:absolute; border-radius:100px; filter:blur(1px); }
   .cloud .puff{ position:absolute; border-radius:50%; background:inherit; }
   @keyframes driftCloud{ from{ transform:translateX(0);} to{ transform:translateX(160vw);} }
 
+  #birdLayer{ position:absolute; inset:8% 0 40% 0; opacity:0; transition:opacity 1s; }
+  .bird{ position:absolute; width:22px; height:9px; animation: flyAcross linear infinite; }
+  .bird svg{ width:100%; height:100%; display:block; animation: flap 0.9s ease-in-out infinite; transform-origin:center; }
+  @keyframes flyAcross{ from{ transform:translate(-10vw, 0);} to{ transform:translate(110vw, -40px);} }
+  @keyframes flap{ 0%,100%{ transform:scaleY(1);} 50%{ transform:scaleY(0.4);} }
+
+  #fogLayer{ position:absolute; left:0; right:0; bottom:14%; height:26%; opacity:0; transition:opacity 1.2s; overflow:hidden; }
+  .fog-band{ position:absolute; height:60px; width:220%; border-radius:50%; background:rgba(255,255,255,0.30); filter:blur(10px); animation:driftFog linear infinite; }
+  @keyframes driftFog{ from{ transform:translateX(-10%);} to{ transform:translateX(10%);} }
+
+  .landscape{ position:absolute; left:0; right:0; bottom:0; width:100%; transition: filter var(--transition-slow); }
+  .landscape svg{ display:block; width:100%; height:auto; }
+  .land-far{ fill:var(--land-far); transition:fill var(--transition-slow); }
+  .land-near{ fill:var(--land-near); transition:fill var(--transition-slow); }
+
+  .reflection{ position:absolute; left:0; right:0; bottom:0; height:9%; overflow:hidden; opacity:0.55; }
+  .reflection-inner{ position:absolute; inset:0; background:linear-gradient(180deg, var(--land-near), transparent); transition: background var(--transition-slow); }
+  .ripple{ position:absolute; left:-10%; width:120%; height:3px; background:rgba(255,255,255,0.18); border-radius:50%; animation:rippleMove ease-in-out infinite; }
+  @keyframes rippleMove{ 0%,100%{ transform:translateX(0) scaleX(1);} 50%{ transform:translateX(2%) scaleX(1.03);} }
+
   #windLayer{ position:absolute; inset:0; opacity:0; transition:opacity 0.8s; }
-  .wind-line{
-    position:absolute; height:2px; width:70px; border-radius:2px;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
-    animation: windmove linear infinite;
-  }
+  .wind-line{ position:absolute; height:2px; width:70px; border-radius:2px; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent); animation: windmove linear infinite; }
   @keyframes windmove{ from{ transform:translateX(-120px);} to{ transform:translateX(120vw);} }
 
   #rainLayer{ position:absolute; inset:0; opacity:0; transition:opacity 0.8s; }
-  .drop{
-    position:absolute; top:-10%; width:2px; height:20px;
-    background:linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.7));
-    animation: fall linear infinite;
-  }
+  .drop{ position:absolute; top:-10%; width:2px; height:20px; background:linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.7)); animation: fall linear infinite; }
   @keyframes fall{ to{ transform:translate(var(--fx,0), 120vh); } }
 
-  #lightningFlash{
-    position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:5;
-  }
-  .bolt{
-    position:absolute; top:0; opacity:0; z-index:6;
+  #lightningFlash{ position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:5; }
+
+  .grain{
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    opacity:0.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   }
 
   @media (prefers-reduced-motion: reduce){
-    .cloud, .drop, .star, .wind-line, .sun-rays{ animation:none !important; }
+    .cloud, .drop, .star, .wind-line, .sun-rays, .bird, .fog-band, .ripple{ animation:none !important; }
   }
 
-  /* ---------- Layout ---------- */
-  .wrap{ position:relative; z-index:1; max-width:760px; margin:0 auto; padding: 48px 24px 80px; }
+  .wrap{ position:relative; z-index:2; max-width:760px; margin:0 auto; padding: 48px 24px 80px; }
 
   .search-wrap{ position:relative; }
   .search-row{
     display:flex; gap:8px; align-items:center;
-    background:var(--paper);
-    backdrop-filter:blur(14px);
+    background:linear-gradient(180deg, var(--paper-edge), var(--paper));
+    backdrop-filter:blur(16px) saturate(1.3);
     border:1px solid var(--line);
-    border-radius:999px;
-    padding:6px 6px 6px 20px;
+    border-radius:999px; padding:6px 6px 6px 20px;
     position:relative; z-index:3;
+    box-shadow:0 12px 30px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
   }
   .search-row input{ flex:1; border:none; background:transparent; outline:none; font-family:'Inter'; font-size:15px; color:var(--ink); }
   .search-row input::placeholder{ color:var(--ink-soft); }
-  .search-row button{
-    border:none; background:var(--ink); color:#fff; font-family:'Inter'; font-weight:600;
-    font-size:14px; padding:10px 20px; border-radius:999px; cursor:pointer; transition:background .2s;
-  }
+  .search-row button{ border:none; background:var(--ink); color:#fff; font-family:'Inter'; font-weight:600; font-size:14px; padding:10px 20px; border-radius:999px; cursor:pointer; transition:background .2s, transform .15s; }
   .search-row button:hover{ background:var(--accent); }
+  .search-row button:active{ transform:scale(0.96); }
   .search-row button:focus-visible, .search-row input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .locate-btn{ background:none;border:none;cursor:pointer;color:var(--ink-soft);font-size:18px; padding:6px; line-height:1; }
   .locate-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px;}
 
   .suggestions{
     position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:2;
-    background:var(--paper); backdrop-filter:blur(16px);
+    background:linear-gradient(180deg, var(--paper-edge), var(--paper));
+    backdrop-filter:blur(18px) saturate(1.3);
     border:1px solid var(--line); border-radius:18px;
-    overflow:hidden; box-shadow:0 12px 30px rgba(0,0,0,0.12);
+    overflow:hidden; box-shadow:0 16px 36px rgba(0,0,0,0.16);
   }
-  .suggestion-item{
-    display:flex; flex-direction:column; gap:1px;
-    padding:11px 18px; cursor:pointer; text-align:left;
-    border-bottom:1px solid var(--line);
-    background:none; border-left:none; border-right:none; border-top:none;
-    width:100%; font-family:'Inter';
-  }
+  .suggestion-item{ display:flex; flex-direction:column; gap:1px; padding:11px 18px; cursor:pointer; text-align:left; border:none; border-bottom:1px solid var(--line); width:100%; font-family:'Inter'; background:none; }
   .suggestion-item:last-child{ border-bottom:none; }
-  .suggestion-item:hover, .suggestion-item.active{ background:rgba(255,255,255,0.5); }
+  .suggestion-item:hover, .suggestion-item.active{ background:rgba(255,255,255,0.45); }
   .suggestion-item .s-name{ font-size:14px; font-weight:600; color:var(--ink); }
   .suggestion-item .s-sub{ font-size:12px; color:var(--ink-soft); }
 
-  .hero{ text-align:center; margin-top:64px; }
+  .hero{
+    text-align:center; margin-top:60px; position:relative;
+    padding:28px 20px 8px;
+    background:radial-gradient(ellipse 70% 100% at 50% 30%, rgba(255,255,255,0.10), rgba(255,255,255,0) 70%);
+    border-radius:32px;
+  }
+  .hero .temp, .hero .place, .hero .condition, .hero .stat .val{ text-shadow: 0 2px 14px rgba(0,0,0,0.18); }
   .place{ font-size:19px; font-weight:600; letter-spacing:0.3px; color:var(--ink); }
   .place .country{ font-weight:400; color:var(--ink-soft); }
   .temp{ font-family:'Fraunces', serif; font-weight:400; font-size:clamp(96px, 22vw, 168px); line-height:0.95; margin:8px 0 0; letter-spacing:-2px; }
@@ -142,7 +151,14 @@
   .stat{ text-align:center; }
   .stat .val{ font-size:16px; font-weight:600; }
   .stat .lab{ font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:var(--ink-soft); margin-top:2px; }
-  .panel{ background:var(--paper); backdrop-filter:blur(14px); border:1px solid var(--line); border-radius:24px; padding:22px; margin-top:36px; }
+
+  .panel{
+    position:relative;
+    background:linear-gradient(180deg, var(--paper-edge), var(--paper));
+    backdrop-filter:blur(16px) saturate(1.3);
+    border:1px solid var(--line); border-radius:24px; padding:22px; margin-top:32px;
+    box-shadow:0 14px 36px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
   .panel h2{ font-family:'Inter'; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--ink-soft); margin:0 0 16px; }
   .hourly-scroll{ display:flex; gap:0; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin; }
   .hour{ flex:0 0 auto; width:64px; text-align:center; padding:6px 0; border-right:1px solid var(--line); }
@@ -171,10 +187,52 @@
   <div class="sun-rays" id="sunRays"></div>
   <div class="celestial sun" id="celestial"></div>
   <div id="cloudLayer"></div>
+  <div id="birdLayer"></div>
+  <div id="fogLayer"></div>
+
+  <div class="landscape" id="landscape">
+    <svg viewBox="0 0 1440 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path class="land-far" d="M0,140 C120,110 240,130 360,115 C480,100 560,125 680,110 C800,96 900,120 1020,108 C1150,96 1300,118 1440,105 L1440,220 L0,220 Z"/>
+      <g class="land-near">
+        <path d="M0,178 C200,165 350,182 520,170 C680,160 820,178 980,166 C1140,156 1300,176 1440,168 L1440,220 L0,220 Z"/>
+        <path d="M300,178 L316,178 L316,160 L322,160 L322,148 L328,148 L328,138 L336,138 L336,128 L344,128 L344,118 L352,118 L352,128 L360,128 L360,138 L368,138 L368,148 L374,148 L374,160 L380,160 L380,178 Z"/>
+        <rect x="120" y="150" width="26" height="28"/>
+        <rect x="150" y="140" width="20" height="38"/>
+        <rect x="900" y="148" width="30" height="30"/>
+        <rect x="940" y="136" width="18" height="42"/>
+        <rect x="965" y="155" width="22" height="23"/>
+        <g transform="translate(60,178)">
+          <path d="M0,0 C-2,-18 2,-34 6,-48" stroke="var(--land-near)" stroke-width="4" fill="none"/>
+          <path d="M6,-48 C-6,-54 -18,-50 -26,-40 M6,-48 C18,-56 30,-52 36,-42 M6,-48 C0,-62 -8,-70 -18,-72 M6,-48 C14,-64 24,-70 34,-68 M6,-48 C4,-60 6,-70 10,-78" stroke="var(--land-near)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </g>
+        <g transform="translate(230,178) scale(0.85)">
+          <path d="M0,0 C-2,-18 2,-34 6,-48" stroke="var(--land-near)" stroke-width="4" fill="none"/>
+          <path d="M6,-48 C-6,-54 -18,-50 -26,-40 M6,-48 C18,-56 30,-52 36,-42 M6,-48 C0,-62 -8,-70 -18,-72 M6,-48 C14,-64 24,-70 34,-68 M6,-48 C4,-60 6,-70 10,-78" stroke="var(--land-near)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </g>
+        <g transform="translate(1080,178) scale(1.1)">
+          <path d="M0,0 C-2,-18 2,-34 6,-48" stroke="var(--land-near)" stroke-width="4" fill="none"/>
+          <path d="M6,-48 C-6,-54 -18,-50 -26,-40 M6,-48 C18,-56 30,-52 36,-42 M6,-48 C0,-62 -8,-70 -18,-72 M6,-48 C14,-64 24,-70 34,-68 M6,-48 C4,-60 6,-70 10,-78" stroke="var(--land-near)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </g>
+        <g transform="translate(1260,178) scale(0.9)">
+          <path d="M0,0 C-2,-18 2,-34 6,-48" stroke="var(--land-near)" stroke-width="4" fill="none"/>
+          <path d="M6,-48 C-6,-54 -18,-50 -26,-40 M6,-48 C18,-56 30,-52 36,-42 M6,-48 C0,-62 -8,-70 -18,-72 M6,-48 C14,-64 24,-70 34,-68 M6,-48 C4,-60 6,-70 10,-78" stroke="var(--land-near)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <div class="reflection">
+    <div class="reflection-inner" id="reflectionInner"></div>
+    <div class="ripple" style="top:20%; animation-duration:4s;"></div>
+    <div class="ripple" style="top:55%; animation-duration:5.5s; animation-delay:-2s;"></div>
+    <div class="ripple" style="top:80%; animation-duration:6.5s; animation-delay:-4s;"></div>
+  </div>
+
   <div id="windLayer"></div>
   <div id="rainLayer"></div>
   <div id="lightningFlash"></div>
 </div>
+<div class="grain"></div>
 
 <div class="wrap">
 
@@ -253,11 +311,16 @@
     sunRays: document.getElementById('sunRays'),
     stars: document.getElementById('stars'),
     cloudLayer: document.getElementById('cloudLayer'),
+    birdLayer: document.getElementById('birdLayer'),
+    fogLayer: document.getElementById('fogLayer'),
+    landscape: document.getElementById('landscape'),
+    reflectionInner: document.getElementById('reflectionInner'),
     windLayer: document.getElementById('windLayer'),
     rainLayer: document.getElementById('rainLayer'),
     lightningFlash: document.getElementById('lightningFlash')
   };
 
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let lightningTimer = null;
   let currentSuggestions = [];
   let activeSuggestionIdx = -1;
@@ -268,7 +331,7 @@
     if(code >= 300 && code < 400) return {icon:'🌦️', group:'rain', label:'Drizzle'};
     if(code >= 500 && code < 600) return {icon:'🌧️', group:'rain', label:'Rain'};
     if(code >= 600 && code < 700) return {icon:'🌨️', group:'snow', label:'Snow'};
-    if(code >= 700 && code < 800) return {icon:'🌫️', group:'cloud', label:'Mist/Haze'};
+    if(code >= 700 && code < 800) return {icon:'🌫️', group:'mist', label:'Mist/Haze'};
     if(code === 800) return {icon:'☀️', group:'clear', label:'Clear sky'};
     if(code > 800) return {icon:'☁️', group:'cloud', label:'Cloudy'};
     return {icon:'🌡️', group:'clear', label:'—'};
@@ -279,6 +342,8 @@
     clear_night:['நட்சத்திரங்கள் தெரியும் இரவு', 'A starlit night, calm and quiet.'],
     cloud_day:['மேகமூட்டமான நாள்', 'Soft grey light, easy on the eyes.'],
     cloud_night:['மேகமூடிய இரவு', 'Clouds hiding the stars tonight.'],
+    mist_day:['பனிமூட்டம் சூழ்ந்த நாள்', 'A hazy day — the horizon softens.'],
+    mist_night:['மூடுபனி இரவு', 'Mist rolling in over the quiet dark.'],
     rain_day:['மழை பொழியும் நாள்', 'Rain today — keep an umbrella close.'],
     rain_night:['மழை நிறைந்த இரவு', 'A rainy night, good for slow thoughts.'],
     storm_day:['இடி மின்னலுடன் மழை', 'Thunder in the air — stay indoors if you can.'],
@@ -287,61 +352,61 @@
     snow_night:['பனி நிறைந்த இரவு', 'A snowy night, soft and still.'],
   };
 
-  /* ---------- Sky rendering ---------- */
-
   function setPalette(group, isDay){
     const palettes = {
-      clear_day:  ['#4A90D9','#7BB3E8','#DCEBF7'],
-      clear_night:['#0B1330','#141C42','#1B2144'],
-      cloud_day:  ['#7C93A8','#A7BAC9','#DCE4EA'],
-      cloud_night:['#161F33','#232D45','#2C3652'],
-      rain_day:   ['#5B6B7D','#7C8B9C','#A9B6C1'],
-      rain_night: ['#12182A','#1D2438','#2A3245'],
-      storm_day:  ['#3E4A5C','#5A6779','#7C8896'],
-      storm_night:['#0A0E1C','#151A2C','#1E2438'],
-      snow_day:   ['#9FB6C9','#C7D8E4','#EEF4F8'],
-      snow_night: ['#1A2438','#26314A','#333F5A'],
+      clear_day:  { sky:['#4A90D9','#7BB3E8','#DCEBF7'], far:'#7CA3C4', near:'#28394B' },
+      clear_night:{ sky:['#0B1330','#141C42','#1B2144'], far:'#1A2340', near:'#080B18' },
+      cloud_day:  { sky:['#7C93A8','#A7BAC9','#DCE4EA'], far:'#6E828F', near:'#2B3A44' },
+      cloud_night:{ sky:['#161F33','#232D45','#2C3652'], far:'#20293C', near:'#0A0E18' },
+      mist_day:   { sky:['#9AAAB4','#BFCBD1','#E7ECEE'], far:'#8FA0A8', near:'#3C4A50' },
+      mist_night: { sky:['#232C38','#333F4B','#48545F'], far:'#2A3540', near:'#0D1418' },
+      rain_day:   { sky:['#5B6B7D','#7C8B9C','#A9B6C1'], far:'#516070', near:'#222E38' },
+      rain_night: { sky:['#12182A','#1D2438','#2A3245'], far:'#1B2333', near:'#080B14' },
+      storm_day:  { sky:['#3E4A5C','#5A6779','#7C8896'], far:'#3A4552', near:'#1A2129' },
+      storm_night:{ sky:['#0A0E1C','#151A2C','#1E2438'], far:'#161B28', near:'#05070C' },
+      snow_day:   { sky:['#9FB6C9','#C7D8E4','#EEF4F8'], far:'#9AAAB8', near:'#465662' },
+      snow_night: { sky:['#1A2438','#26314A','#333F5A'], far:'#242E42', near:'#0A0F18' },
     };
     const key = `${group}_${isDay?'day':'night'}`;
     const p = palettes[key] || palettes.clear_day;
-    document.body.style.background = `linear-gradient(180deg, ${p[0]} 0%, ${p[1]} 45%, ${p[2]} 100%)`;
+    document.body.style.background = `linear-gradient(180deg, ${p.sky[0]} 0%, ${p.sky[1]} 45%, ${p.sky[2]} 100%)`;
+    document.documentElement.style.setProperty('--land-far', p.far);
+    document.documentElement.style.setProperty('--land-near', p.near);
     document.documentElement.style.setProperty('--ink', isDay ? '#12203A' : '#EDEFF6');
     document.documentElement.style.setProperty('--ink-soft', isDay ? 'rgba(18,32,58,0.62)' : 'rgba(237,239,246,0.62)');
     document.documentElement.style.setProperty('--line', isDay ? 'rgba(18,32,58,0.14)' : 'rgba(237,239,246,0.18)');
     document.documentElement.style.setProperty('--paper', isDay ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.08)');
+    document.documentElement.style.setProperty('--paper-edge', isDay ? 'rgba(255,255,255,0.78)' : 'rgba(255,255,255,0.16)');
+    els.reflectionInner.style.background = `linear-gradient(180deg, ${p.near}, transparent)`;
   }
 
   function buildStars(){
     let html = '';
     for(let i=0;i<70;i++){
-      const x = Math.random()*100, y = Math.random()*60, d = (Math.random()*3).toFixed(2);
+      const x = Math.random()*100, y = Math.random()*70, d = (Math.random()*3).toFixed(2);
       html += `<div class="star" style="left:${x}%;top:${y}%;animation-delay:${d}s;"></div>`;
     }
     els.stars.innerHTML = html;
   }
   buildStars();
 
-  // Realistic cloud puffs built from overlapping circles, count/speed/size driven by real data
   function buildClouds(coverPercent, windKmh){
     els.cloudLayer.innerHTML = '';
-    if(coverPercent < 5){ return; }
+    if(coverPercent < 5) return;
     const count = Math.max(1, Math.min(9, Math.round(coverPercent / 12)));
-    // faster wind = shorter drift duration (clouds move quicker)
     const baseDuration = Math.max(18, 85 - windKmh * 1.8);
-
     for(let i=0;i<count;i++){
-      const depth = Math.random(); // 0 = far/small/slow, 1 = near/big/fast
+      const depth = Math.random();
       const scale = 0.6 + depth * 0.9;
       const w = Math.round(150 * scale);
       const h = Math.round(46 * scale);
-      const top = 4 + Math.random()*40;
+      const top = 2 + Math.random()*22;
       const opacity = 0.4 + depth*0.45;
       const duration = baseDuration * (1.3 - depth*0.6);
       const delay = -Math.random()*duration;
       const cloud = document.createElement('div');
       cloud.className = 'cloud';
       cloud.style.cssText = `width:${w}px;height:${h}px;top:${top}%;left:-20%;opacity:${opacity.toFixed(2)};background:#fff;animation:driftCloud ${duration.toFixed(1)}s linear infinite;animation-delay:${delay.toFixed(1)}s;`;
-      // build organic puffs
       const puffCount = 3 + Math.floor(Math.random()*2);
       for(let p=0; p<puffCount; p++){
         const ps = (0.45 + Math.random()*0.55) * h * 1.6;
@@ -354,6 +419,38 @@
       }
       els.cloudLayer.appendChild(cloud);
     }
+  }
+
+  function buildBirds(isDay, group){
+    els.birdLayer.innerHTML = '';
+    const show = isDay && (group === 'clear' || group === 'cloud') && !reduceMotion;
+    els.birdLayer.style.opacity = show ? '0.75' : '0';
+    if(!show) return;
+    const count = 2 + Math.floor(Math.random()*2);
+    for(let i=0;i<count;i++){
+      const top = 10 + Math.random()*50;
+      const dur = 14 + Math.random()*10;
+      const delay = -Math.random()*dur;
+      const scale = 0.7 + Math.random()*0.6;
+      const bird = document.createElement('div');
+      bird.className = 'bird';
+      bird.style.cssText = `top:${top}%; transform:scale(${scale.toFixed(2)}); animation-duration:${dur.toFixed(1)}s; animation-delay:${delay.toFixed(1)}s;`;
+      bird.innerHTML = `<svg viewBox="0 0 24 10"><path d="M0,6 C4,0 8,0 12,6 C16,0 20,0 24,6" stroke="rgba(20,30,45,0.65)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`;
+      els.birdLayer.appendChild(bird);
+    }
+  }
+
+  function buildFog(isMist){
+    els.fogLayer.style.opacity = isMist ? '1' : '0';
+    if(!isMist){ els.fogLayer.innerHTML=''; return; }
+    if(els.fogLayer.childElementCount) return;
+    let html = '';
+    for(let i=0;i<4;i++){
+      const top = i * 25 + Math.random()*10;
+      const dur = 30 + Math.random()*20;
+      html += `<div class="fog-band" style="top:${top}%; left:-60%; animation-duration:${dur.toFixed(1)}s; animation-delay:${(-Math.random()*dur).toFixed(1)}s;"></div>`;
+    }
+    els.fogLayer.innerHTML = html;
   }
 
   function buildWindLines(windKmh){
@@ -379,7 +476,6 @@
       return;
     }
     els.rainLayer.style.opacity = '1';
-    // drift angle from wind direction (roughly), clamp for visual sense
     const skew = Math.max(-40, Math.min(40, (windDeg - 180) / 4.5));
     const intensity = rainVolume ? Math.min(1, rainVolume / 8) : (group === 'storm' ? 0.85 : 0.5);
     const count = Math.round(50 + intensity * 90);
@@ -388,8 +484,7 @@
       const x = Math.random()*100;
       const dur = (0.4 + Math.random()*0.5) / (0.6 + intensity*0.6);
       const delay = Math.random()*2;
-      const fx = `${skew}px`;
-      html += `<div class="drop" style="left:${x}%;--fx:${fx};animation-duration:${dur.toFixed(2)}s;animation-delay:${delay.toFixed(2)}s;"></div>`;
+      html += `<div class="drop" style="left:${x}%;--fx:${skew}px;animation-duration:${dur.toFixed(2)}s;animation-delay:${delay.toFixed(2)}s;"></div>`;
     }
     els.rainLayer.innerHTML = html;
   }
@@ -424,14 +519,17 @@
     const windDeg = current.wind.deg || 180;
     const cover = current.clouds ? current.clouds.all : 0;
     const rainVol = current.rain ? (current.rain['1h'] || current.rain['3h'] || 0) : 0;
+    const isMist = info.group === 'mist';
 
-    setPalette(info.group, isDay);
+    setPalette(isMist ? 'mist' : info.group, isDay);
 
     els.celestial.className = 'celestial ' + (isDay ? 'sun' : 'moon');
     els.stars.style.opacity = isDay ? '0' : '1';
     els.sunRays.style.opacity = (isDay && info.group === 'clear') ? '1' : '0';
 
-    buildClouds(info.group === 'clear' ? Math.min(cover,15) : Math.max(cover, 25), windKmh);
+    buildClouds(info.group === 'clear' ? Math.min(cover,15) : Math.max(cover, isMist ? 40 : 25), windKmh);
+    buildBirds(isDay, isMist ? 'cloud' : info.group);
+    buildFog(isMist);
     buildWindLines(windKmh);
     buildRain(info.group, windDeg, windKmh, rainVol);
 
@@ -440,7 +538,12 @@
     return { info, isDay };
   }
 
-  /* ---------- Formatting ---------- */
+  if(!reduceMotion){
+    document.addEventListener('mousemove', function(e){
+      const relX = (e.clientX / window.innerWidth - 0.5);
+      els.landscape.style.transform = `translateX(${(relX * -14).toFixed(1)}px)`;
+    });
+  }
 
   function formatHour(unixSec, tzOffsetSec){
     const d = new Date((unixSec + tzOffsetSec) * 1000);
@@ -455,15 +558,12 @@
     return d.toLocaleDateString('en-US', {weekday:'short', timeZone:'UTC'});
   }
 
-  /* ---------- API calls ---------- */
-
   async function geocodeSearch(name, limit){
     const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(name)}&limit=${limit}&appid=${API_KEY}`;
     const res = await fetch(url);
     if(!res.ok) throw new Error('Geocoding failed');
     return res.json();
   }
-
   async function fetchCurrent(lat, lon){
     const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
     const res = await fetch(url);
@@ -493,8 +593,6 @@
       return { dt: d.dt, max: Math.max(...d.temps), min: Math.min(...d.temps), code: d.middayCode };
     });
   }
-
-  /* ---------- Render weather panel ---------- */
 
   function render(place, current, forecast){
     els.placeName.textContent = place.name;
@@ -608,16 +706,10 @@
     }
   }
 
-  /* ---------- Autocomplete ---------- */
-
   function renderSuggestions(results){
     currentSuggestions = results;
     activeSuggestionIdx = -1;
-    if(!results.length){
-      els.suggestList.classList.add('hidden');
-      els.suggestList.innerHTML = '';
-      return;
-    }
+    if(!results.length){ els.suggestList.classList.add('hidden'); els.suggestList.innerHTML = ''; return; }
     els.suggestList.innerHTML = results.map((r, i) => {
       const sub = [r.state, r.country].filter(Boolean).join(', ');
       return `<button type="button" class="suggestion-item" data-idx="${i}">
@@ -628,7 +720,6 @@
     els.suggestList.classList.remove('hidden');
     els.input.setAttribute('aria-expanded', 'true');
   }
-
   function hideSuggestions(){
     els.suggestList.classList.add('hidden');
     els.suggestList.innerHTML = '';
@@ -636,7 +727,6 @@
     activeSuggestionIdx = -1;
     els.input.setAttribute('aria-expanded', 'false');
   }
-
   function pickSuggestion(idx){
     const r = currentSuggestions[idx];
     if(!r) return;
@@ -650,10 +740,8 @@
     clearTimeout(debounceTimer);
     if(v.length < 2){ hideSuggestions(); return; }
     debounceTimer = setTimeout(async () => {
-      try{
-        const results = await geocodeSearch(v, 5);
-        renderSuggestions(results);
-      }catch(e){ hideSuggestions(); }
+      try{ const results = await geocodeSearch(v, 5); renderSuggestions(results); }
+      catch(e){ hideSuggestions(); }
     }, 350);
   });
 
@@ -669,32 +757,23 @@
       activeSuggestionIdx = Math.max(activeSuggestionIdx - 1, 0);
       items.forEach((it,i)=>it.classList.toggle('active', i===activeSuggestionIdx));
     } else if(e.key === 'Enter'){
-      if(activeSuggestionIdx >= 0){
-        e.preventDefault();
-        pickSuggestion(activeSuggestionIdx);
-      }
-    } else if(e.key === 'Escape'){
-      hideSuggestions();
-    }
+      if(activeSuggestionIdx >= 0){ e.preventDefault(); pickSuggestion(activeSuggestionIdx); }
+    } else if(e.key === 'Escape'){ hideSuggestions(); }
   });
-
   els.suggestList.addEventListener('click', function(e){
     const btn = e.target.closest('.suggestion-item');
     if(!btn) return;
     pickSuggestion(parseInt(btn.dataset.idx, 10));
   });
-
   document.addEventListener('click', function(e){
     if(!e.target.closest('.search-wrap')) hideSuggestions();
   });
-
   els.form.addEventListener('submit', function(e){
     e.preventDefault();
     const v = els.input.value.trim();
     hideSuggestions();
     if(v) loadCityByName(v);
   });
-
   els.locateBtn.addEventListener('click', function(){
     if(!navigator.geolocation){
       els.error.textContent = 'Location access is not available in this browser.';
