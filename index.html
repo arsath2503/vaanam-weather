@@ -9,12 +9,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   :root{
-    --ink:#12203A; --ink-soft:rgba(18,32,58,0.72);
-    --paper:rgba(255,255,255,0.72); --paper-edge:rgba(255,255,255,0.88);
-    --line:rgba(18,32,58,0.16); --accent:#E8895A;
+    --ink:#F3F6FB; --ink-soft:rgba(243,246,251,0.68);
+    --paper:rgba(10,16,28,0.42); --paper-edge:rgba(20,28,44,0.55);
+    --line:rgba(255,255,255,0.10); --accent:#F0A868;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0; background:#4A90D9;}
+  html,body{margin:0;padding:0; background:#0B1330;}
   body{ font-family:'Inter', sans-serif; color:var(--ink); min-height:100vh; overflow-x:hidden; }
   .tamil{ font-family:'Noto Sans Tamil', sans-serif; }
 
@@ -25,7 +25,7 @@
 
   .grain{
     position:fixed; inset:0; z-index:2; pointer-events:none;
-    opacity:0.045; mix-blend-mode:overlay;
+    opacity:0.05; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   }
 
@@ -34,16 +34,16 @@
   .search-wrap{ position:relative; }
   .search-row{
     display:flex; gap:8px; align-items:center;
-    background:linear-gradient(180deg, var(--paper-edge), var(--paper));
-    backdrop-filter:blur(16px) saturate(1.3);
+    background:var(--paper-edge);
+    backdrop-filter:blur(18px) saturate(1.2);
     border:1px solid var(--line); border-radius:999px; padding:6px 6px 6px 20px;
     position:relative; z-index:3;
-    box-shadow:0 12px 30px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+    box-shadow:0 12px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
   }
   .search-row input{ flex:1; min-width:0; border:none; background:transparent; outline:none; font-family:'Inter'; font-size:15px; color:var(--ink); }
   .search-row input::placeholder{ color:var(--ink-soft); }
-  .search-row button{ border:none; background:var(--ink); color:#fff; font-family:'Inter'; font-weight:600; font-size:14px; padding:10px 20px; border-radius:999px; cursor:pointer; transition:background .2s, transform .15s; }
-  .search-row button:hover{ background:var(--accent); }
+  .search-row button{ border:none; background:var(--ink); color:#0B1330; font-family:'Inter'; font-weight:600; font-size:14px; padding:10px 20px; border-radius:999px; cursor:pointer; transition:background .2s, transform .15s; }
+  .search-row button:hover{ background:var(--accent); color:#1a1206; }
   .search-row button:active{ transform:scale(0.96); }
   .search-row button:focus-visible, .search-row input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .locate-btn{ background:none;border:none;cursor:pointer;color:var(--ink-soft);font-size:18px; padding:6px; line-height:1; }
@@ -51,41 +51,37 @@
 
   .suggestions{
     position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:2;
-    background:linear-gradient(180deg, var(--paper-edge), var(--paper));
-    backdrop-filter:blur(18px) saturate(1.3);
+    background:var(--paper-edge); backdrop-filter:blur(20px) saturate(1.2);
     border:1px solid var(--line); border-radius:18px; overflow:hidden;
-    box-shadow:0 16px 36px rgba(0,0,0,0.16);
+    box-shadow:0 16px 36px rgba(0,0,0,0.4);
   }
-  .suggestion-item{ display:flex; flex-direction:column; gap:1px; padding:11px 18px; cursor:pointer; text-align:left; border:none; border-bottom:1px solid var(--line); width:100%; font-family:'Inter'; background:none; }
+  .suggestion-item{ display:flex; flex-direction:column; gap:1px; padding:11px 18px; cursor:pointer; text-align:left; border:none; border-bottom:1px solid var(--line); width:100%; font-family:'Inter'; background:none; color:var(--ink); }
   .suggestion-item:last-child{ border-bottom:none; }
-  .suggestion-item:hover, .suggestion-item.active{ background:rgba(255,255,255,0.45); }
+  .suggestion-item:hover, .suggestion-item.active{ background:rgba(255,255,255,0.08); }
   .suggestion-item .s-name{ font-size:14px; font-weight:600; color:var(--ink); }
   .suggestion-item .s-sub{ font-size:12px; color:var(--ink-soft); }
 
-  .hero{
-    text-align:center; margin-top:60px; position:relative; padding:28px 20px 8px;
-    background:radial-gradient(ellipse 70% 100% at 50% 30%, rgba(255,255,255,0.22), rgba(255,255,255,0) 72%);
-    border-radius:32px;
-  }
-  .hero .temp, .hero .place, .hero .condition, .hero .stat .val{ text-shadow: 0 2px 18px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.5); }
-  .place{ font-size:19px; font-weight:600; letter-spacing:0.3px; color:var(--ink); }
+  .hero{ text-align:center; margin-top:56px; position:relative; }
+  .place{ font-size:18px; font-weight:600; letter-spacing:0.3px; color:var(--ink); display:flex; align-items:center; justify-content:center; gap:8px; }
+  .place img.flag{ width:22px; height:16px; border-radius:2px; box-shadow:0 0 0 1px rgba(255,255,255,0.15); }
   .place .country{ font-weight:400; color:var(--ink-soft); }
-  .temp{ font-family:'Fraunces', serif; font-weight:400; font-size:clamp(96px, 22vw, 168px); line-height:0.95; margin:8px 0 0; letter-spacing:-2px; }
-  .temp sup{ font-size:0.32em; font-weight:300; top:-0.5em; }
-  .condition{ font-size:17px; color:var(--ink-soft); margin-top:2px; }
-  .mood{ margin-top:20px; font-size:15px; color:var(--ink-soft); font-style:italic; }
-  .mood .ta{ font-style:normal; display:block; margin-bottom:2px; color:var(--ink); font-size:15px; }
-  .stat-row{ display:flex; justify-content:center; gap:28px; margin-top:34px; flex-wrap:wrap; }
+  .temp{ font-family:'Fraunces', serif; font-weight:300; font-size:clamp(100px, 24vw, 176px); line-height:0.9; margin:6px 0 0; letter-spacing:-2px; color:#fff; }
+  .temp sup{ font-size:0.3em; font-weight:300; top:-0.5em; }
+  .hero .temp, .hero .place, .hero .condition, .hero .stat .val{ text-shadow: 0 2px 20px rgba(0,0,0,0.55); }
+  .condition{ font-size:16px; color:var(--ink-soft); margin-top:0px; }
+  .mood{ margin-top:18px; font-size:14px; color:var(--ink-soft); font-style:italic; }
+  .mood .ta{ font-style:normal; display:block; margin-bottom:2px; color:var(--ink); font-size:14px; }
+  .stat-row{ display:flex; justify-content:center; gap:26px; margin-top:30px; flex-wrap:wrap; }
   .stat{ text-align:center; }
-  .stat .val{ font-size:16px; font-weight:600; }
+  .stat .val{ font-size:16px; font-weight:600; color:#fff; }
   .stat .lab{ font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:var(--ink-soft); margin-top:2px; }
 
   .panel{
     position:relative;
-    background:linear-gradient(180deg, var(--paper-edge), var(--paper));
-    backdrop-filter:blur(16px) saturate(1.3);
-    border:1px solid var(--line); border-radius:24px; padding:22px; margin-top:32px;
-    box-shadow:0 14px 36px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+    background:var(--paper);
+    backdrop-filter:blur(18px) saturate(1.2);
+    border:1px solid var(--line); border-radius:24px; padding:22px; margin-top:28px;
+    box-shadow:0 14px 36px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
   }
   .panel h2{ font-family:'Inter'; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--ink-soft); margin:0 0 16px; }
   .hourly-scroll{ display:flex; gap:0; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin; }
@@ -93,28 +89,28 @@
   .hour:last-child{ border-right:none; }
   .hour .t{ font-size:11px; color:var(--ink-soft); }
   .hour .ic{ font-size:22px; margin:8px 0; }
-  .hour .tmp{ font-size:14px; font-weight:600; }
+  .hour .tmp{ font-size:14px; font-weight:600; color:#fff; }
   .days{ display:flex; flex-direction:column; }
   .day{ display:grid; grid-template-columns: 84px 1fr auto auto; align-items:center; gap:14px; padding:11px 2px; border-bottom:1px solid var(--line); font-size:14px; }
   .day:last-child{ border-bottom:none; }
   .day .dname{ font-weight:600; }
   .day .dic{ font-size:19px; text-align:center; }
-  .day .range{ color:var(--ink-soft); font-variant-numeric:tabular-nums; }
-  .day .lo{ color:var(--ink-soft); }
-  .footer-note{ text-align:center; margin-top:30px; font-size:12px; color:var(--ink-soft); }
+  .day .range{ color:#fff; font-variant-numeric:tabular-nums; font-weight:600; }
+  .day .lo{ color:var(--ink-soft); font-weight:400; }
+  .footer-note{ text-align:center; margin-top:28px; font-size:12px; color:var(--ink-soft); }
   .footer-note .ta{ font-family:'Noto Sans Tamil'; display:block; margin-bottom:4px; }
-  .footer-note .signature{ display:block; margin-top:10px; font-weight:600; letter-spacing:0.4px; color:var(--ink); opacity:0.8; }
+  .footer-note .signature{ display:block; margin-top:10px; font-weight:600; letter-spacing:0.4px; color:var(--ink); opacity:0.85; }
   .state-msg{ text-align:center; margin-top:60px; color:var(--ink-soft); font-size:14px; position:relative; z-index:3; }
   .hidden{ display:none !important; }
-  @media (max-width:480px){ .stat-row{ gap:18px; } .day{ grid-template-columns: 66px 1fr auto auto; font-size:13px; } }
+  @media (max-width:480px){ .stat-row{ gap:16px; } .day{ grid-template-columns: 66px 1fr auto auto; font-size:13px; } }
   @media (max-width:380px){
     .wrap{ padding:36px 16px 60px; }
     .search-row{ padding:4px 4px 4px 14px; gap:4px; }
     .search-row input{ font-size:14px; }
     .search-row button{ padding:9px 14px; font-size:13px; }
-    .stat-row{ gap:12px; }
+    .stat-row{ gap:10px; }
     .stat .val{ font-size:14px; }
-    .temp{ font-size:clamp(76px, 24vw, 120px); }
+    .temp{ font-size:clamp(80px, 26vw, 128px); }
   }
 </style>
 </head>
@@ -134,12 +130,12 @@
     <div class="suggestions hidden" id="suggestionsList"></div>
   </div>
 
-  <div id="loadingMsg" class="state-msg">Building the sky over Chennai…</div>
+  <div id="loadingMsg" class="state-msg">Watching the sky over Chennai…</div>
   <div id="errorMsg" class="state-msg hidden"></div>
 
   <div id="content" class="hidden">
     <div class="hero">
-      <div class="place"><span id="placeFlag"></span> <span id="placeName">—</span> <span class="country" id="placeCountry"></span></div>
+      <div class="place"><img class="flag" id="placeFlag" alt=""><span id="placeName">—</span> <span class="country" id="placeCountry"></span></div>
       <div class="temp" id="tempMain">—<sup>°C</sup></div>
       <div class="condition" id="conditionText">—</div>
       <div class="mood">
@@ -166,7 +162,7 @@
 
     <div class="footer-note">
       <span class="ta">வானம் பார்த்து, நாள் திட்டமிடுங்கள்</span>
-      Data from OpenWeatherMap · Vaanam · 3D scene by Three.js
+      Data from OpenWeatherMap · Vaanam
       <span class="signature">Created by Arsath</span>
     </div>
   </div>
@@ -178,7 +174,9 @@
   const API_KEY = (window.OPENWEATHER_API_KEY || '').trim();
 
   /* ============================================================
-     THREE.JS 3D SCENE
+     THREE.JS ATMOSPHERIC SCENE — sky only, no ground/landmarks.
+     Matches the reference: pure sky, glowing moon/sun with halo,
+     wispy translucent clouds, stars, rain, lightning, fog depth.
   ============================================================ */
   const container = document.getElementById('scene-container');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -189,9 +187,9 @@
   container.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(58, window.innerWidth/window.innerHeight, 0.1, 2000);
-  camera.position.set(0, 10, 34);
-  camera.lookAt(0, 8, 0);
+  const camera = new THREE.PerspectiveCamera(62, window.innerWidth/window.innerHeight, 0.1, 2000);
+  camera.position.set(0, 4, 0);
+  camera.lookAt(0, 20, -100);
 
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth/window.innerHeight;
@@ -201,10 +199,10 @@
 
   /* ---------- Sky dome (gradient shader) ---------- */
   const skyUniforms = {
-    topColor:    { value: new THREE.Color(0x4A90D9) },
-    bottomColor: { value: new THREE.Color(0xDCEBF7) },
-    offset:      { value: 40 },
-    exponent:    { value: 0.65 }
+    topColor:    { value: new THREE.Color(0x0B1330) },
+    bottomColor: { value: new THREE.Color(0x2A3A5C) },
+    offset:      { value: 15 },
+    exponent:    { value: 0.7 }
   };
   const skyGeo = new THREE.SphereGeometry(600, 32, 16);
   const skyMat = new THREE.ShaderMaterial({
@@ -230,38 +228,49 @@
   });
   const skyMesh = new THREE.Mesh(skyGeo, skyMat);
   scene.add(skyMesh);
-  let targetTop = new THREE.Color(0x4A90D9);
-  let targetBottom = new THREE.Color(0xDCEBF7);
+  let targetTop = new THREE.Color(0x0B1330);
+  let targetBottom = new THREE.Color(0x2A3A5C);
 
-  /* ---------- Lights ---------- */
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
-  scene.add(ambientLight);
-  const hemiLight = new THREE.HemisphereLight(0x8fa8c9, 0x1a2230, 0.5);
-  scene.add(hemiLight);
-  const sunLight = new THREE.DirectionalLight(0xfff3d6, 1.1);
-  sunLight.position.set(60, 90, -40);
-  scene.add(sunLight);
-  let baseSunIntensity = 1.1;
+  /* ---------- Soft radial texture (used for glow halo + clouds) ---------- */
+  function makeSoftTexture(inner, outer, feather){
+    const size = 256;
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    const grad = ctx.createRadialGradient(size/2,size/2,0, size/2,size/2, size/2);
+    grad.addColorStop(0, inner);
+    grad.addColorStop(feather, outer);
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,size,size);
+    const tex = new THREE.CanvasTexture(c);
+    return tex;
+  }
+  const glowTexture = makeSoftTexture('rgba(255,255,255,1)', 'rgba(255,255,255,0.35)', 0.35);
+  const cloudTexture = makeSoftTexture('rgba(255,255,255,0.9)', 'rgba(255,255,255,0.25)', 0.5);
 
-  /* ---------- Sun / Moon ---------- */
-  const celestialMat = new THREE.MeshBasicMaterial({ color: 0xfff6dc });
-  const celestialMesh = new THREE.Mesh(new THREE.SphereGeometry(9, 24, 24), celestialMat);
-  celestialMesh.position.set(70, 90, -220);
+  /* ---------- Celestial body + halo glow ---------- */
+  const celestialMat = new THREE.MeshBasicMaterial({ color: 0xe4e9f5 });
+  const celestialMesh = new THREE.Mesh(new THREE.SphereGeometry(6, 24, 24), celestialMat);
+  celestialMesh.position.set(60, 55, -260);
   scene.add(celestialMesh);
-  const celestialGlow = new THREE.PointLight(0xfff0c8, 0.6, 400);
-  celestialGlow.position.copy(celestialMesh.position);
-  scene.add(celestialGlow);
+
+  const haloMat = new THREE.SpriteMaterial({ map: glowTexture, color: 0xffffff, transparent:true, opacity:0.55, blending:THREE.AdditiveBlending, depthWrite:false });
+  const halo = new THREE.Sprite(haloMat);
+  halo.scale.set(90,90,1);
+  halo.position.copy(celestialMesh.position);
+  scene.add(halo);
 
   /* ---------- Stars ---------- */
-  const starCount = 900;
+  const starCount = 1400;
   const starGeo = new THREE.BufferGeometry();
   const starPos = new Float32Array(starCount*3);
   for(let i=0;i<starCount;i++){
     const r = 550;
     const theta = Math.random()*Math.PI*2;
-    const phi = Math.random()*Math.PI*0.5;
+    const phi = Math.random()*Math.PI*0.55;
     starPos[i*3]   = r*Math.sin(phi)*Math.cos(theta);
-    starPos[i*3+1] = r*Math.cos(phi)*0.6 + 40;
+    starPos[i*3+1] = r*Math.cos(phi)*0.7 + 30;
     starPos[i*3+2] = r*Math.sin(phi)*Math.sin(theta);
   }
   starGeo.setAttribute('position', new THREE.BufferAttribute(starPos,3));
@@ -269,182 +278,50 @@
   const starPoints = new THREE.Points(starGeo, starMat);
   scene.add(starPoints);
 
-  /* ---------- Ground + water ---------- */
-  const groundMat = new THREE.MeshStandardMaterial({ color:0x28394B, roughness:0.95 });
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(1000,1000), groundMat);
-  ground.rotation.x = -Math.PI/2;
-  ground.position.y = 0;
-  scene.add(ground);
-
-  const waterGeo = new THREE.PlaneGeometry(200, 60, 40, 12);
-  const waterMat = new THREE.MeshStandardMaterial({ color:0x3E5670, roughness:0.15, metalness:0.55, transparent:true, opacity:0.9 });
-  const water = new THREE.Mesh(waterGeo, waterMat);
-  water.rotation.x = -Math.PI/2;
-  water.position.set(0, 0.05, 26);
-  scene.add(water);
-  const waterBasePos = waterGeo.attributes.position.array.slice();
-
-  // distant rolling hills
-  const hillsGroup = new THREE.Group();
-  const hillMat = new THREE.MeshStandardMaterial({ color:0x2E4258, roughness:1 });
-  for(let i=0;i<6;i++){
-    const hill = new THREE.Mesh(new THREE.SphereGeometry(40+Math.random()*30, 16, 12, 0, Math.PI*2, 0, Math.PI/2), hillMat);
-    hill.position.set(-250 + i*100 + (Math.random()*30-15), -10, -140 - Math.random()*40);
-    hill.scale.y = 0.4;
-    hillsGroup.add(hill);
-  }
-  scene.add(hillsGroup);
-
-  /* ---------- Region landmarks ---------- */
-  const landmarkGroup = new THREE.Group();
-  scene.add(landmarkGroup);
-  const landmarkMat = new THREE.MeshStandardMaterial({ color:0x16232F, roughness:0.9 });
-
-  function makePalmTree(x,z,scale){
-    const g = new THREE.Group();
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.55,7,6), landmarkMat);
-    trunk.position.y = 3.5;
-    g.add(trunk);
-    for(let i=0;i<6;i++){
-      const frond = new THREE.Mesh(new THREE.ConeGeometry(0.5, 4.2, 4), landmarkMat);
-      frond.position.y = 7;
-      frond.rotation.z = Math.PI/2.3;
-      frond.rotation.y = (i/6)*Math.PI*2;
-      frond.position.x = Math.cos((i/6)*Math.PI*2)*1.4;
-      frond.position.z = Math.sin((i/6)*Math.PI*2)*1.4;
-      g.add(frond);
-    }
-    g.position.set(x, 0, z);
-    g.scale.setScalar(scale);
-    return g;
-  }
-  function makeBuilding(x,z,w,h,d){
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), landmarkMat);
-    m.position.set(x, h/2, z);
-    return m;
-  }
-  function makeGopuram(x,z){
-    const g = new THREE.Group();
-    const levels = 6;
-    for(let i=0;i<levels;i++){
-      const s = 5 - i*0.7;
-      const box = new THREE.Mesh(new THREE.BoxGeometry(s,2,s), landmarkMat);
-      box.position.y = i*2 + 1;
-      g.add(box);
-    }
-    g.position.set(x,0,z);
-    return g;
-  }
-  function makeMinaretDome(x,z){
-    const g = new THREE.Group();
-    const tower = new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,14,10), landmarkMat);
-    tower.position.y = 7;
-    const dome = new THREE.Mesh(new THREE.SphereGeometry(1.6,12,10,0,Math.PI*2,0,Math.PI/2), landmarkMat);
-    dome.position.y = 14.6;
-    g.add(tower, dome);
-    g.position.set(x,0,z);
-    return g;
-  }
-  function makePagoda(x,z){
-    const g = new THREE.Group();
-    for(let i=0;i<4;i++){
-      const s = 4.5 - i*0.9;
-      const roof = new THREE.Mesh(new THREE.ConeGeometry(s,1.4,4), landmarkMat);
-      roof.position.y = i*2.6 + 1.5;
-      roof.rotation.y = Math.PI/4;
-      g.add(roof);
-    }
-    g.position.set(x,0,z);
-    return g;
-  }
-
-  const REGION_MAP = {
-    IN:'south_asia', LK:'south_asia', BD:'south_asia', NP:'south_asia', PK:'south_asia',
-    MY:'se_asia', SG:'se_asia', TH:'se_asia', ID:'se_asia', PH:'se_asia', VN:'se_asia', KH:'se_asia', MM:'se_asia',
-    AE:'middle_east', SA:'middle_east', QA:'middle_east', OM:'middle_east', KW:'middle_east', BH:'middle_east', EG:'middle_east',
-    JP:'east_asia', CN:'east_asia', KR:'east_asia', TW:'east_asia', HK:'east_asia',
-  };
-  function regionFor(cc){ return REGION_MAP[(cc||'').toUpperCase()] || 'western'; }
-
-  function buildLandmarks(region){
-    while(landmarkGroup.children.length) landmarkGroup.remove(landmarkGroup.children[0]);
-    landmarkGroup.scale.setScalar(1.8);
-    if(region === 'south_asia'){
-      landmarkGroup.add(makeGopuram(-6, -11));
-      landmarkGroup.add(makeBuilding(-15,-13,4,7,4));
-      landmarkGroup.add(makeBuilding(13,-12,5,9,4));
-      landmarkGroup.add(makePalmTree(-10,-6,1));
-      landmarkGroup.add(makePalmTree(9,-7,0.85));
-      landmarkGroup.add(makePalmTree(17,-9,1.1));
-      landmarkGroup.add(makePalmTree(-19,-10,0.9));
-    } else if(region === 'se_asia'){
-      landmarkGroup.add(makeBuilding(-4,-16,4,26,4));
-      landmarkGroup.add(makeBuilding(4,-16,4,30,4));
-      landmarkGroup.add(makeBuilding(15,-13,5,14,5));
-      landmarkGroup.add(makePalmTree(-14,-6,1));
-      landmarkGroup.add(makePalmTree(16,-5,0.9));
-    } else if(region === 'middle_east'){
-      landmarkGroup.add(makeMinaretDome(-4,-13));
-      landmarkGroup.add(makeBuilding(-13,-13,5,10,5));
-      landmarkGroup.add(makeBuilding(12,-14,5,12,5));
-      landmarkGroup.add(makePalmTree(-17,-6,1));
-      landmarkGroup.add(makePalmTree(17,-7,0.9));
-    } else if(region === 'east_asia'){
-      landmarkGroup.add(makePagoda(-6,-13));
-      landmarkGroup.add(makeBuilding(-14,-15,5,20,5));
-      landmarkGroup.add(makeBuilding(13,-16,5,24,5));
-    } else {
-      landmarkGroup.add(makeBuilding(-12,-14,5,14,5));
-      landmarkGroup.add(makeBuilding(-4,-16,4,20,4));
-      landmarkGroup.add(makeBuilding(5,-15,5,17,5));
-      landmarkGroup.add(makeBuilding(13,-17,4,23,4));
-    }
-  }
-  buildLandmarks('south_asia');
-
-  /* ---------- Clouds ---------- */
+  /* ---------- Wispy translucent clouds (sprite-based, not geometric) ---------- */
   const cloudGroup = new THREE.Group();
   scene.add(cloudGroup);
-  const cloudMat = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.9, transparent:true, opacity:0.92, flatShading:false });
 
-  function makeCloud(depth){
+  function makeCloudStreak(depth){
     const g = new THREE.Group();
-    const puffs = 5 + Math.floor(Math.random()*3);
-    const baseScale = 2.4 + depth*3.4;
-    for(let i=0;i<puffs;i++){
-      const s = baseScale * (0.6+Math.random()*0.6);
-      const puff = new THREE.Mesh(new THREE.SphereGeometry(s, 10, 8), cloudMat);
-      puff.position.set(i*baseScale*1.0 - puffs*baseScale*0.5, Math.random()*1.4, Math.random()*1.4);
-      g.add(puff);
+    const layers = 3 + Math.floor(Math.random()*2);
+    const baseW = 60 + depth*70;
+    for(let i=0;i<layers;i++){
+      const mat = new THREE.SpriteMaterial({ map: cloudTexture, color:0xffffff, transparent:true, opacity:0.22+Math.random()*0.18, depthWrite:false });
+      const spr = new THREE.Sprite(mat);
+      const w = baseW * (0.7+Math.random()*0.7);
+      spr.scale.set(w, w*0.28, 1);
+      spr.position.set((Math.random()-0.5)*baseW*0.6, (Math.random()-0.5)*8, (Math.random()-0.5)*10);
+      g.add(spr);
     }
-    g.userData.speed = 0.4 + depth*1.2 + Math.random()*0.4;
+    g.userData.speed = 0.6 + depth*1.6 + Math.random()*0.5;
     return g;
   }
 
   function rebuildClouds(coverPercent, windKmh){
     while(cloudGroup.children.length) cloudGroup.remove(cloudGroup.children[0]);
     if(coverPercent < 5) return;
-    const count = Math.max(2, Math.min(14, Math.round(coverPercent/8)));
+    const count = Math.max(2, Math.min(10, Math.round(coverPercent/10)));
     for(let i=0;i<count;i++){
       const depth = Math.random();
-      const cloud = makeCloud(depth);
-      cloud.position.set(-150 + Math.random()*300, 55 + Math.random()*35, -60 - depth*140);
-      cloud.userData.speed *= (0.5 + windKmh/40);
+      const cloud = makeCloudStreak(depth);
+      cloud.position.set(-220 + Math.random()*440, 20 + Math.random()*60, -80 - depth*180);
+      cloud.userData.speed *= (0.5 + windKmh/35);
       cloudGroup.add(cloud);
     }
   }
 
   /* ---------- Rain ---------- */
-  const RAIN_COUNT = 3500;
+  const RAIN_COUNT = 3000;
   const rainGeo = new THREE.BufferGeometry();
   const rainPos = new Float32Array(RAIN_COUNT*3);
   for(let i=0;i<RAIN_COUNT;i++){
-    rainPos[i*3]   = (Math.random()-0.5)*260;
-    rainPos[i*3+1] = Math.random()*140;
-    rainPos[i*3+2] = (Math.random()-0.5)*260;
+    rainPos[i*3]   = (Math.random()-0.5)*240;
+    rainPos[i*3+1] = Math.random()*140 - 20;
+    rainPos[i*3+2] = (Math.random()-0.5)*240 - 60;
   }
   rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos,3));
-  const rainMat = new THREE.PointsMaterial({ color:0xBFD6E8, size:0.35, transparent:true, opacity:0, sizeAttenuation:true });
+  const rainMat = new THREE.PointsMaterial({ color:0xBFD6E8, size:0.32, transparent:true, opacity:0, sizeAttenuation:true });
   const rainPoints = new THREE.Points(rainGeo, rainMat);
   scene.add(rainPoints);
   let rainActive = false;
@@ -452,7 +329,7 @@
   let rainWindX = 0;
 
   /* ---------- Fog ---------- */
-  scene.fog = new THREE.Fog(0xDCEBF7, 60, 500);
+  scene.fog = new THREE.Fog(0x2A3A5C, 80, 550);
 
   /* ---------- Lightning ---------- */
   let lightningTimer = null;
@@ -463,12 +340,12 @@
   function spawnBolt(){
     if(boltMesh) scene.remove(boltMesh);
     const pts = [];
-    let x = (Math.random()-0.5)*80, y = 120;
-    pts.push(new THREE.Vector3(x,y,-100));
-    while(y > 20){
+    let x = (Math.random()-0.5)*100, y = 110;
+    pts.push(new THREE.Vector3(x,y,-140));
+    while(y > 10){
       y -= 8 + Math.random()*8;
-      x += (Math.random()-0.5)*14;
-      pts.push(new THREE.Vector3(x,y,-100));
+      x += (Math.random()-0.5)*16;
+      pts.push(new THREE.Vector3(x,y,-140));
     }
     const geo = new THREE.BufferGeometry().setFromPoints(pts);
     boltMesh = new THREE.Line(geo, boltMat);
@@ -480,13 +357,11 @@
     function flash(){
       spawnBolt();
       boltMat.opacity = 1;
-      sunLight.intensity = baseSunIntensity + 3.5;
       lightningFlashEl.style.transition = 'opacity 0.08s';
-      lightningFlashEl.style.opacity = '0.7';
+      lightningFlashEl.style.opacity = '0.55';
       setTimeout(()=>{
         lightningFlashEl.style.opacity = '0';
         boltMat.opacity = 0;
-        sunLight.intensity = baseSunIntensity;
       }, 110);
     }
     function schedule(){
@@ -499,7 +374,6 @@
     if(lightningTimer){ clearTimeout(lightningTimer); lightningTimer = null; }
     lightningFlashEl.style.opacity = '0';
     boltMat.opacity = 0;
-    sunLight.intensity = baseSunIntensity;
   }
 
   /* ---------- Mouse parallax (real 3D depth via camera) ---------- */
@@ -514,48 +388,40 @@
   /* ---------- Scene configuration from weather data ---------- */
   function configureScene(group, isDay, windKmh, cloudCoverPct, rainActiveFlag, rainVolume, isStorm, isMist){
     const palettes = {
-      clear_day:  { top:0x4A90D9, bottom:0xDCEBF7, fog:0xCFE3F3, sunI:1.15, amb:0.6, hemi:0.55, ground:0x28394B, hill:0x2E4258 },
-      clear_night:{ top:0x0B1330, bottom:0x1B2144, fog:0x141C42, sunI:0.15, amb:0.3, hemi:0.4, ground:0x141E30, hill:0x1A2340 },
-      cloud_day:  { top:0x7C93A8, bottom:0xDCE4EA, fog:0xB7C4CE, sunI:0.75, amb:0.55, hemi:0.5, ground:0x2B3A44, hill:0x6E828F },
-      cloud_night:{ top:0x161F33, bottom:0x2C3652, fog:0x232D45, sunI:0.12, amb:0.28, hemi:0.38, ground:0x131A28, hill:0x20293C },
-      mist_day:   { top:0x9AAAB4, bottom:0xE7ECEE, fog:0xD8DFE1, sunI:0.6, amb:0.55, hemi:0.5, ground:0x3C4A50, hill:0x8FA0A8 },
-      mist_night: { top:0x232C38, bottom:0x48545F, fog:0x333F4B, sunI:0.1, amb:0.3, hemi:0.4, ground:0x1C2530, hill:0x2A3540 },
-      rain_day:   { top:0x5B6B7D, bottom:0xA9B6C1, fog:0x8C99A6, sunI:0.55, amb:0.5, hemi:0.46, ground:0x222E38, hill:0x516070 },
-      rain_night: { top:0x12182A, bottom:0x2A3245, fog:0x1D2438, sunI:0.1, amb:0.27, hemi:0.36, ground:0x121824, hill:0x1B2333 },
-      storm_day:  { top:0x3E4A5C, bottom:0x7C8896, fog:0x5A6779, sunI:0.5, amb:0.45, hemi:0.42, ground:0x1A2129, hill:0x3A4552 },
-      storm_night:{ top:0x0A0E1C, bottom:0x1E2438, fog:0x151A2C, sunI:0.08, amb:0.24, hemi:0.32, ground:0x0F141E, hill:0x161B28 },
-      snow_day:   { top:0x9FB6C9, bottom:0xEEF4F8, fog:0xDCE7EC, sunI:0.9, amb:0.6, hemi:0.55, ground:0x465662, hill:0x9AAAB8 },
-      snow_night: { top:0x1A2438, bottom:0x333F5A, fog:0x26314A, sunI:0.12, amb:0.3, hemi:0.4, ground:0x1C2636, hill:0x242E42 },
+      clear_day:  { top:0x4A90D9, bottom:0xBFDCF2, fog:0xBFDCF2, celestial:0xfff6dc, haloOp:0.35 },
+      clear_night:{ top:0x070C22, bottom:0x1B2144, fog:0x1B2144, celestial:0xe8edf7, haloOp:0.6 },
+      cloud_day:  { top:0x6C8298, bottom:0xC7D2D9, fog:0xC7D2D9, celestial:0xf3ede0, haloOp:0.25 },
+      cloud_night:{ top:0x0F1626, bottom:0x2B3652, fog:0x2B3652, celestial:0xd8dfec, haloOp:0.45 },
+      mist_day:   { top:0x8A9AA6, bottom:0xD9E1E4, fog:0xD9E1E4, celestial:0xeef0ee, haloOp:0.3 },
+      mist_night: { top:0x1B2430, bottom:0x3A4650, fog:0x3A4650, celestial:0xcfd7dc, haloOp:0.4 },
+      rain_day:   { top:0x49586A, bottom:0x8E9BA8, fog:0x8E9BA8, celestial:0xc9d2da, haloOp:0.2 },
+      rain_night: { top:0x0B0F1C, bottom:0x232B3D, fog:0x232B3D, celestial:0xaeb8c9, haloOp:0.35 },
+      storm_day:  { top:0x333E4E, bottom:0x66727F, fog:0x66727F, celestial:0x9aa4b0, haloOp:0.18 },
+      storm_night:{ top:0x06080F, bottom:0x171D2C, fog:0x171D2C, celestial:0x8f9ab0, haloOp:0.3 },
+      snow_day:   { top:0x8CA6BA, bottom:0xE4EEF3, fog:0xE4EEF3, celestial:0xf7fafc, haloOp:0.3 },
+      snow_night: { top:0x161E30, bottom:0x2C3850, fog:0x2C3850, celestial:0xe0e8f2, haloOp:0.45 },
     };
-    const key = `${isMist ? 'mist' : group}_${isDay?'day':'night'}`;
-    const p = palettes[key] || palettes.clear_day;
+    const key = `${isMist?'mist':group}_${isDay?'day':'night'}`;
+    const p = palettes[key] || palettes.clear_night;
 
     targetTop.set(p.top);
     targetBottom.set(p.bottom);
     scene.fog.color.set(p.fog);
-    scene.fog.near = isMist ? 20 : 60;
-    scene.fog.far = isMist ? 150 : 500;
-    baseSunIntensity = p.sunI;
-    sunLight.intensity = p.sunI;
-    ambientLight.intensity = p.amb;
-    hemiLight.intensity = p.hemi;
-    hemiLight.groundColor.set(p.ground);
-    groundMat.color.set(p.ground);
-    hillMat.color.set(p.hill);
-    waterMat.color.set(p.bottom).lerp(new THREE.Color(0x2A3A4C), 0.5);
+    scene.fog.near = isMist ? 30 : 80;
+    scene.fog.far = isMist ? 220 : 550;
 
-    celestialMat.color.set(isDay ? 0xfff6dc : 0xe4e9f5);
-    celestialGlow.color.set(isDay ? 0xfff0c8 : 0xc9d6ee);
-    celestialGlow.intensity = isDay ? 0.6 : 0.35;
-    celestialMesh.position.y = isDay ? 90 : 96;
-    sunLight.position.set(70, celestialMesh.position.y, -220);
+    celestialMat.color.set(p.celestial);
+    haloMat.color.set(p.celestial);
+    haloMat.opacity = p.haloOp;
+    celestialMesh.position.y = isDay ? 55 : 62;
+    halo.position.copy(celestialMesh.position);
 
-    starMat.opacity = isDay ? 0 : 0.9;
+    starMat.opacity = isDay ? 0 : 0.85;
 
     rebuildClouds(group === 'clear' ? Math.min(cloudCoverPct,15) : Math.max(cloudCoverPct, isMist?45:25), windKmh);
 
     rainActive = rainActiveFlag;
-    rainMat.opacity = rainActive ? 0.55 : 0;
+    rainMat.opacity = rainActive ? 0.5 : 0;
     rainSpeed = 50 + (rainVolume ? Math.min(1,rainVolume/8)*50 : (isStorm?40:20));
     rainWindX = Math.max(-8, Math.min(8, (windKmh - 10) / 6));
 
@@ -574,7 +440,7 @@
 
     cloudGroup.children.forEach(c => {
       c.position.x += c.userData.speed * dt;
-      if(c.position.x > 200) c.position.x = -200;
+      if(c.position.x > 260) c.position.x = -260;
     });
 
     if(rainActive){
@@ -582,34 +448,23 @@
       for(let i=0;i<RAIN_COUNT;i++){
         pos[i*3+1] -= rainSpeed*dt;
         pos[i*3] += rainWindX*dt;
-        if(pos[i*3+1] < 0){ pos[i*3+1] = 140; pos[i*3] = (Math.random()-0.5)*260; pos[i*3+2] = (Math.random()-0.5)*260; }
+        if(pos[i*3+1] < -20){ pos[i*3+1] = 120; pos[i*3] = (Math.random()-0.5)*240; pos[i*3+2] = (Math.random()-0.5)*240 - 60; }
       }
       rainGeo.attributes.position.needsUpdate = true;
     }
 
-    // water ripple
-    const wPos = waterGeo.attributes.position.array;
-    for(let i=0;i<wPos.length/3;i++){
-      const bx = waterBasePos[i*3], bz = waterBasePos[i*3+2];
-      wPos[i*3+1] = Math.sin(t*0.8 + bx*0.25) * 0.15 + Math.cos(t*0.6 + bz*0.3) * 0.1;
-    }
-    waterGeo.attributes.position.needsUpdate = true;
-    waterGeo.computeVertexNormals();
-
-    // star twinkle
     starMat.size = 1.4 + Math.sin(t*2)*0.2;
 
-    // camera parallax (true 3D depth)
-    camera.position.x += ((mouseX*6) - camera.position.x) * 0.03;
-    camera.position.y += (10 - (mouseY*3) - camera.position.y) * 0.03;
-    camera.lookAt(0, 8, -20);
+    camera.position.x += ((mouseX*8) - camera.position.x) * 0.03;
+    camera.position.y += (4 - (mouseY*4) - camera.position.y) * 0.03;
+    camera.lookAt(0, 20, -100);
 
     renderer.render(scene, camera);
   }
   animate();
 
   /* ============================================================
-     WEATHER DATA + UI (same logic as before, now feeding the 3D scene)
+     WEATHER DATA + UI
   ============================================================ */
 
   const els = {
@@ -639,9 +494,13 @@
   let activeSuggestionIdx = -1;
   let debounceTimer = null;
 
-  function countryToFlag(cc){
-    if(!cc || cc.length !== 2) return '';
-    return cc.toUpperCase().replace(/./g, ch => String.fromCodePoint(127397 + ch.charCodeAt(0)));
+  // Real flag IMAGES via flagcdn.com — works on every OS, unlike emoji flags
+  // (Windows in particular renders flag emoji as plain two-letter text, not a glyph).
+  function setFlagImage(cc){
+    if(!cc || cc.length !== 2){ els.placeFlag.style.display = 'none'; return; }
+    els.placeFlag.style.display = '';
+    els.placeFlag.src = `https://flagcdn.com/48x36/${cc.toLowerCase()}.png`;
+    els.placeFlag.alt = cc;
   }
 
   function ownGroup(code){
@@ -722,7 +581,7 @@
   function render(place, current, forecast){
     els.placeName.textContent = place.name;
     els.placeCountry.textContent = place.country || '';
-    els.placeFlag.textContent = countryToFlag(place.country);
+    setFlagImage(place.country);
 
     const tzOffset = current.timezone || 0;
     const code = current.weather[0].id;
@@ -735,7 +594,6 @@
     const isStorm = info.group === 'storm';
     const rainActiveNow = info.group === 'rain' || info.group === 'storm';
 
-    buildLandmarks(regionFor(place.country));
     configureScene(info.group, isDay, windKmh, cover, rainActiveNow, rainVol, isStorm, isMist);
 
     els.tempMain.innerHTML = `${Math.round(current.main.temp)}<sup>°C</sup>`;
@@ -786,7 +644,7 @@
       els.error.classList.remove('hidden');
       return;
     }
-    els.loading.textContent = `Building the sky over ${place.name}…`;
+    els.loading.textContent = `Watching the sky over ${place.name}…`;
     els.loading.classList.remove('hidden');
     els.error.classList.add('hidden');
     els.content.classList.add('hidden');
@@ -807,7 +665,7 @@
       els.error.classList.remove('hidden');
       return;
     }
-    els.loading.textContent = `Building the sky over ${name}…`;
+    els.loading.textContent = `Watching the sky over ${name}…`;
     els.loading.classList.remove('hidden');
     els.error.classList.add('hidden');
     els.content.classList.add('hidden');
@@ -829,7 +687,7 @@
       els.error.classList.remove('hidden');
       return;
     }
-    els.loading.textContent = `Building the sky above you…`;
+    els.loading.textContent = `Watching the sky above you…`;
     els.loading.classList.remove('hidden');
     els.error.classList.add('hidden');
     els.content.classList.add('hidden');
