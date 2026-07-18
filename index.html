@@ -9,9 +9,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   :root{
-    --ink:#12203A; --ink-soft:rgba(18,32,58,0.62);
-    --paper:rgba(255,255,255,0.55); --paper-edge:rgba(255,255,255,0.75);
-    --line:rgba(18,32,58,0.14); --accent:#E8895A;
+    --ink:#12203A; --ink-soft:rgba(18,32,58,0.72);
+    --paper:rgba(255,255,255,0.72); --paper-edge:rgba(255,255,255,0.88);
+    --line:rgba(18,32,58,0.16); --accent:#E8895A;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0; background:#4A90D9;}
@@ -64,10 +64,10 @@
 
   .hero{
     text-align:center; margin-top:60px; position:relative; padding:28px 20px 8px;
-    background:radial-gradient(ellipse 70% 100% at 50% 30%, rgba(255,255,255,0.10), rgba(255,255,255,0) 70%);
+    background:radial-gradient(ellipse 70% 100% at 50% 30%, rgba(255,255,255,0.22), rgba(255,255,255,0) 72%);
     border-radius:32px;
   }
-  .hero .temp, .hero .place, .hero .condition, .hero .stat .val{ text-shadow: 0 2px 14px rgba(0,0,0,0.25); }
+  .hero .temp, .hero .place, .hero .condition, .hero .stat .val{ text-shadow: 0 2px 18px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.5); }
   .place{ font-size:19px; font-weight:600; letter-spacing:0.3px; color:var(--ink); }
   .place .country{ font-weight:400; color:var(--ink-soft); }
   .temp{ font-family:'Fraunces', serif; font-weight:400; font-size:clamp(96px, 22vw, 168px); line-height:0.95; margin:8px 0 0; letter-spacing:-2px; }
@@ -236,6 +236,8 @@
   /* ---------- Lights ---------- */
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
   scene.add(ambientLight);
+  const hemiLight = new THREE.HemisphereLight(0x8fa8c9, 0x1a2230, 0.5);
+  scene.add(hemiLight);
   const sunLight = new THREE.DirectionalLight(0xfff3d6, 1.1);
   sunLight.position.set(60, 90, -40);
   scene.add(sunLight);
@@ -275,10 +277,10 @@
   scene.add(ground);
 
   const waterGeo = new THREE.PlaneGeometry(200, 60, 40, 12);
-  const waterMat = new THREE.MeshStandardMaterial({ color:0x1B2A3A, roughness:0.25, metalness:0.35, transparent:true, opacity:0.85 });
+  const waterMat = new THREE.MeshStandardMaterial({ color:0x3E5670, roughness:0.15, metalness:0.55, transparent:true, opacity:0.9 });
   const water = new THREE.Mesh(waterGeo, waterMat);
   water.rotation.x = -Math.PI/2;
-  water.position.set(0, 0.05, 20);
+  water.position.set(0, 0.05, 26);
   scene.add(water);
   const waterBasePos = waterGeo.attributes.position.array.slice();
 
@@ -366,35 +368,36 @@
 
   function buildLandmarks(region){
     while(landmarkGroup.children.length) landmarkGroup.remove(landmarkGroup.children[0]);
+    landmarkGroup.scale.setScalar(1.8);
     if(region === 'south_asia'){
-      landmarkGroup.add(makeGopuram(-6, -20));
-      landmarkGroup.add(makeBuilding(-20,-24,4,7,4));
-      landmarkGroup.add(makeBuilding(18,-22,5,9,4));
-      landmarkGroup.add(makePalmTree(-14,-8,1));
-      landmarkGroup.add(makePalmTree(12,-10,0.85));
-      landmarkGroup.add(makePalmTree(24,-14,1.1));
-      landmarkGroup.add(makePalmTree(-26,-16,0.9));
+      landmarkGroup.add(makeGopuram(-6, -11));
+      landmarkGroup.add(makeBuilding(-15,-13,4,7,4));
+      landmarkGroup.add(makeBuilding(13,-12,5,9,4));
+      landmarkGroup.add(makePalmTree(-10,-6,1));
+      landmarkGroup.add(makePalmTree(9,-7,0.85));
+      landmarkGroup.add(makePalmTree(17,-9,1.1));
+      landmarkGroup.add(makePalmTree(-19,-10,0.9));
     } else if(region === 'se_asia'){
-      landmarkGroup.add(makeBuilding(-4,-30,4,26,4));
-      landmarkGroup.add(makeBuilding(4,-30,4,30,4));
-      landmarkGroup.add(makeBuilding(20,-24,5,14,5));
-      landmarkGroup.add(makePalmTree(-20,-10,1));
-      landmarkGroup.add(makePalmTree(22,-8,0.9));
+      landmarkGroup.add(makeBuilding(-4,-16,4,26,4));
+      landmarkGroup.add(makeBuilding(4,-16,4,30,4));
+      landmarkGroup.add(makeBuilding(15,-13,5,14,5));
+      landmarkGroup.add(makePalmTree(-14,-6,1));
+      landmarkGroup.add(makePalmTree(16,-5,0.9));
     } else if(region === 'middle_east'){
-      landmarkGroup.add(makeMinaretDome(-4,-22));
-      landmarkGroup.add(makeBuilding(-18,-22,5,10,5));
-      landmarkGroup.add(makeBuilding(16,-24,5,12,5));
-      landmarkGroup.add(makePalmTree(-24,-10,1));
-      landmarkGroup.add(makePalmTree(24,-12,0.9));
+      landmarkGroup.add(makeMinaretDome(-4,-13));
+      landmarkGroup.add(makeBuilding(-13,-13,5,10,5));
+      landmarkGroup.add(makeBuilding(12,-14,5,12,5));
+      landmarkGroup.add(makePalmTree(-17,-6,1));
+      landmarkGroup.add(makePalmTree(17,-7,0.9));
     } else if(region === 'east_asia'){
-      landmarkGroup.add(makePagoda(-6,-22));
-      landmarkGroup.add(makeBuilding(-20,-26,5,20,5));
-      landmarkGroup.add(makeBuilding(18,-28,5,24,5));
+      landmarkGroup.add(makePagoda(-6,-13));
+      landmarkGroup.add(makeBuilding(-14,-15,5,20,5));
+      landmarkGroup.add(makeBuilding(13,-16,5,24,5));
     } else {
-      landmarkGroup.add(makeBuilding(-16,-24,5,14,5));
-      landmarkGroup.add(makeBuilding(-6,-28,4,20,4));
-      landmarkGroup.add(makeBuilding(6,-26,5,17,5));
-      landmarkGroup.add(makeBuilding(18,-30,4,23,4));
+      landmarkGroup.add(makeBuilding(-12,-14,5,14,5));
+      landmarkGroup.add(makeBuilding(-4,-16,4,20,4));
+      landmarkGroup.add(makeBuilding(5,-15,5,17,5));
+      landmarkGroup.add(makeBuilding(13,-17,4,23,4));
     }
   }
   buildLandmarks('south_asia');
@@ -402,16 +405,16 @@
   /* ---------- Clouds ---------- */
   const cloudGroup = new THREE.Group();
   scene.add(cloudGroup);
-  const cloudMat = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:1, transparent:true, opacity:0.88, flatShading:true });
+  const cloudMat = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.9, transparent:true, opacity:0.92, flatShading:false });
 
   function makeCloud(depth){
     const g = new THREE.Group();
-    const puffs = 4 + Math.floor(Math.random()*3);
-    const baseScale = 2 + depth*3;
+    const puffs = 5 + Math.floor(Math.random()*3);
+    const baseScale = 2.4 + depth*3.4;
     for(let i=0;i<puffs;i++){
       const s = baseScale * (0.6+Math.random()*0.6);
-      const puff = new THREE.Mesh(new THREE.IcosahedronGeometry(s, 0), cloudMat);
-      puff.position.set(i*baseScale*1.1 - puffs*baseScale*0.5, Math.random()*1.2, Math.random()*1.2);
+      const puff = new THREE.Mesh(new THREE.SphereGeometry(s, 10, 8), cloudMat);
+      puff.position.set(i*baseScale*1.0 - puffs*baseScale*0.5, Math.random()*1.4, Math.random()*1.4);
       g.add(puff);
     }
     g.userData.speed = 0.4 + depth*1.2 + Math.random()*0.4;
@@ -511,18 +514,18 @@
   /* ---------- Scene configuration from weather data ---------- */
   function configureScene(group, isDay, windKmh, cloudCoverPct, rainActiveFlag, rainVolume, isStorm, isMist){
     const palettes = {
-      clear_day:  { top:0x4A90D9, bottom:0xDCEBF7, fog:0xCFE3F3, sunI:1.15, amb:0.6, ground:0x28394B, hill:0x2E4258 },
-      clear_night:{ top:0x0B1330, bottom:0x1B2144, fog:0x141C42, sunI:0.15, amb:0.18, ground:0x080B18, hill:0x1A2340 },
-      cloud_day:  { top:0x7C93A8, bottom:0xDCE4EA, fog:0xB7C4CE, sunI:0.75, amb:0.55, ground:0x2B3A44, hill:0x6E828F },
-      cloud_night:{ top:0x161F33, bottom:0x2C3652, fog:0x232D45, sunI:0.12, amb:0.16, ground:0x0A0E18, hill:0x20293C },
-      mist_day:   { top:0x9AAAB4, bottom:0xE7ECEE, fog:0xD8DFE1, sunI:0.6, amb:0.55, ground:0x3C4A50, hill:0x8FA0A8 },
-      mist_night: { top:0x232C38, bottom:0x48545F, fog:0x333F4B, sunI:0.1, amb:0.18, ground:0x0D1418, hill:0x2A3540 },
-      rain_day:   { top:0x5B6B7D, bottom:0xA9B6C1, fog:0x8C99A6, sunI:0.55, amb:0.5, ground:0x222E38, hill:0x516070 },
-      rain_night: { top:0x12182A, bottom:0x2A3245, fog:0x1D2438, sunI:0.1, amb:0.15, ground:0x080B14, hill:0x1B2333 },
-      storm_day:  { top:0x3E4A5C, bottom:0x7C8896, fog:0x5A6779, sunI:0.5, amb:0.45, ground:0x1A2129, hill:0x3A4552 },
-      storm_night:{ top:0x0A0E1C, bottom:0x1E2438, fog:0x151A2C, sunI:0.08, amb:0.13, ground:0x05070C, hill:0x161B28 },
-      snow_day:   { top:0x9FB6C9, bottom:0xEEF4F8, fog:0xDCE7EC, sunI:0.9, amb:0.6, ground:0x465662, hill:0x9AAAB8 },
-      snow_night: { top:0x1A2438, bottom:0x333F5A, fog:0x26314A, sunI:0.12, amb:0.18, ground:0x0A0F18, hill:0x242E42 },
+      clear_day:  { top:0x4A90D9, bottom:0xDCEBF7, fog:0xCFE3F3, sunI:1.15, amb:0.6, hemi:0.55, ground:0x28394B, hill:0x2E4258 },
+      clear_night:{ top:0x0B1330, bottom:0x1B2144, fog:0x141C42, sunI:0.15, amb:0.3, hemi:0.4, ground:0x141E30, hill:0x1A2340 },
+      cloud_day:  { top:0x7C93A8, bottom:0xDCE4EA, fog:0xB7C4CE, sunI:0.75, amb:0.55, hemi:0.5, ground:0x2B3A44, hill:0x6E828F },
+      cloud_night:{ top:0x161F33, bottom:0x2C3652, fog:0x232D45, sunI:0.12, amb:0.28, hemi:0.38, ground:0x131A28, hill:0x20293C },
+      mist_day:   { top:0x9AAAB4, bottom:0xE7ECEE, fog:0xD8DFE1, sunI:0.6, amb:0.55, hemi:0.5, ground:0x3C4A50, hill:0x8FA0A8 },
+      mist_night: { top:0x232C38, bottom:0x48545F, fog:0x333F4B, sunI:0.1, amb:0.3, hemi:0.4, ground:0x1C2530, hill:0x2A3540 },
+      rain_day:   { top:0x5B6B7D, bottom:0xA9B6C1, fog:0x8C99A6, sunI:0.55, amb:0.5, hemi:0.46, ground:0x222E38, hill:0x516070 },
+      rain_night: { top:0x12182A, bottom:0x2A3245, fog:0x1D2438, sunI:0.1, amb:0.27, hemi:0.36, ground:0x121824, hill:0x1B2333 },
+      storm_day:  { top:0x3E4A5C, bottom:0x7C8896, fog:0x5A6779, sunI:0.5, amb:0.45, hemi:0.42, ground:0x1A2129, hill:0x3A4552 },
+      storm_night:{ top:0x0A0E1C, bottom:0x1E2438, fog:0x151A2C, sunI:0.08, amb:0.24, hemi:0.32, ground:0x0F141E, hill:0x161B28 },
+      snow_day:   { top:0x9FB6C9, bottom:0xEEF4F8, fog:0xDCE7EC, sunI:0.9, amb:0.6, hemi:0.55, ground:0x465662, hill:0x9AAAB8 },
+      snow_night: { top:0x1A2438, bottom:0x333F5A, fog:0x26314A, sunI:0.12, amb:0.3, hemi:0.4, ground:0x1C2636, hill:0x242E42 },
     };
     const key = `${isMist ? 'mist' : group}_${isDay?'day':'night'}`;
     const p = palettes[key] || palettes.clear_day;
@@ -535,8 +538,11 @@
     baseSunIntensity = p.sunI;
     sunLight.intensity = p.sunI;
     ambientLight.intensity = p.amb;
+    hemiLight.intensity = p.hemi;
+    hemiLight.groundColor.set(p.ground);
     groundMat.color.set(p.ground);
     hillMat.color.set(p.hill);
+    waterMat.color.set(p.bottom).lerp(new THREE.Color(0x2A3A4C), 0.5);
 
     celestialMat.color.set(isDay ? 0xfff6dc : 0xe4e9f5);
     celestialGlow.color.set(isDay ? 0xfff0c8 : 0xc9d6ee);
