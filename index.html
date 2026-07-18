@@ -8,9 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --sky-top:#4A90D9;
-    --sky-mid:#7BB3E8;
-    --sky-bottom:#DCEBF7;
     --ink:#12203A;
     --ink-soft:rgba(18,32,58,0.62);
     --paper:rgba(255,255,255,0.55);
@@ -24,12 +21,25 @@
     font-family:'Inter', sans-serif;
     color:var(--ink);
     min-height:100vh;
-    background:linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-bottom) 100%);
+    background:linear-gradient(180deg, #4A90D9 0%, #7BB3E8 45%, #DCEBF7 100%);
     transition: background var(--transition-slow);
     overflow-x:hidden;
   }
   .tamil{ font-family:'Noto Sans Tamil', sans-serif; }
+
+  /* ---------- Sky scene ---------- */
   .sky-scene{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+
+  .sun-rays{
+    position:absolute; width:480px; height:480px; left:72%; top:18%;
+    transform:translate(-50%,-50%);
+    background:repeating-conic-gradient(rgba(255,244,214,0.35) 0deg 4deg, transparent 4deg 16deg);
+    border-radius:50%;
+    opacity:0; transition:opacity var(--transition-slow);
+    animation: rotateRays 90s linear infinite;
+  }
+  @keyframes rotateRays{ from{transform:translate(-50%,-50%) rotate(0deg);} to{transform:translate(-50%,-50%) rotate(360deg);} }
+
   .celestial{
     position:absolute; width:120px; height:120px; border-radius:50%;
     left:72%; top:18%; transform:translate(-50%,-50%);
@@ -37,34 +47,89 @@
   }
   .celestial.sun{ background:radial-gradient(circle at 35% 30%, #FFF6DC, #FFD873 55%, #FFB74A 100%); box-shadow:0 0 90px 30px rgba(255,215,120,0.55); }
   .celestial.moon{ background:radial-gradient(circle at 35% 30%, #FFFFFF, #E4E9F5 55%, #B9C4DD 100%); box-shadow:0 0 60px 18px rgba(230,235,250,0.45); }
+
   .stars{ position:absolute; inset:0; opacity:0; transition:opacity var(--transition-slow); }
   .star{ position:absolute; width:2px; height:2px; background:#fff; border-radius:50%; animation:twinkle 3.5s ease-in-out infinite; }
   @keyframes twinkle{ 0%,100%{opacity:.25;} 50%{opacity:1;} }
-  .cloud{ position:absolute; background:#fff; border-radius:100px; opacity:0.85; filter:blur(0.5px); }
-  .cloud::before, .cloud::after{ content:""; position:absolute; background:inherit; border-radius:50%; }
-  .cloud.c1{ width:180px;height:56px; top:14%; left:-10%; animation:drift 55s linear infinite; }
-  .cloud.c1::before{ width:90px;height:90px; top:-40px; left:20px; }
-  .cloud.c1::after{ width:70px;height:70px; top:-26px; left:100px; }
-  .cloud.c2{ width:140px;height:44px; top:26%; left:-20%; animation:drift 70s linear infinite; animation-delay:-20s; opacity:0.7;}
-  .cloud.c2::before{ width:70px;height:70px; top:-30px; left:15px; }
-  .cloud.c2::after{ width:55px;height:55px; top:-20px; left:75px; }
-  .cloud.c3{ width:200px;height:60px; top:8%; left:-15%; animation:drift 90s linear infinite; animation-delay:-45s; opacity:0.6;}
-  .cloud.c3::before{ width:100px;height:100px; top:-45px; left:25px; }
-  .cloud.c3::after{ width:80px;height:80px; top:-30px; left:115px; }
-  @keyframes drift{ from{ transform:translateX(0);} to{ transform:translateX(140vw);} }
-  .rain{ position:absolute; inset:0; opacity:0; transition:opacity 0.8s; }
-  .drop{ position:absolute; top:-10%; width:2px; height:18px; background:linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.65)); animation:fall linear infinite; }
-  @keyframes fall{ to{ transform:translateY(120vh); } }
-  @media (prefers-reduced-motion: reduce){ .cloud, .drop, .star{ animation:none !important; } }
+
+  #cloudLayer{ position:absolute; inset:0; }
+  .cloud{
+    position:absolute;
+    border-radius:100px;
+    filter:blur(1px);
+  }
+  .cloud .puff{ position:absolute; border-radius:50%; background:inherit; }
+  @keyframes driftCloud{ from{ transform:translateX(0);} to{ transform:translateX(160vw);} }
+
+  #windLayer{ position:absolute; inset:0; opacity:0; transition:opacity 0.8s; }
+  .wind-line{
+    position:absolute; height:2px; width:70px; border-radius:2px;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+    animation: windmove linear infinite;
+  }
+  @keyframes windmove{ from{ transform:translateX(-120px);} to{ transform:translateX(120vw);} }
+
+  #rainLayer{ position:absolute; inset:0; opacity:0; transition:opacity 0.8s; }
+  .drop{
+    position:absolute; top:-10%; width:2px; height:20px;
+    background:linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.7));
+    animation: fall linear infinite;
+  }
+  @keyframes fall{ to{ transform:translate(var(--fx,0), 120vh); } }
+
+  #lightningFlash{
+    position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:5;
+  }
+  .bolt{
+    position:absolute; top:0; opacity:0; z-index:6;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .cloud, .drop, .star, .wind-line, .sun-rays{ animation:none !important; }
+  }
+
+  /* ---------- Layout ---------- */
   .wrap{ position:relative; z-index:1; max-width:760px; margin:0 auto; padding: 48px 24px 80px; }
-  .search-row{ display:flex; gap:8px; align-items:center; background:var(--paper); backdrop-filter:blur(14px); border:1px solid var(--line); border-radius:999px; padding:6px 6px 6px 20px; }
+
+  .search-wrap{ position:relative; }
+  .search-row{
+    display:flex; gap:8px; align-items:center;
+    background:var(--paper);
+    backdrop-filter:blur(14px);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 6px 6px 20px;
+    position:relative; z-index:3;
+  }
   .search-row input{ flex:1; border:none; background:transparent; outline:none; font-family:'Inter'; font-size:15px; color:var(--ink); }
   .search-row input::placeholder{ color:var(--ink-soft); }
-  .search-row button{ border:none; background:var(--ink); color:#fff; font-family:'Inter'; font-weight:600; font-size:14px; padding:10px 20px; border-radius:999px; cursor:pointer; transition:background .2s; }
+  .search-row button{
+    border:none; background:var(--ink); color:#fff; font-family:'Inter'; font-weight:600;
+    font-size:14px; padding:10px 20px; border-radius:999px; cursor:pointer; transition:background .2s;
+  }
   .search-row button:hover{ background:var(--accent); }
   .search-row button:focus-visible, .search-row input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .locate-btn{ background:none;border:none;cursor:pointer;color:var(--ink-soft);font-size:18px; padding:6px; line-height:1; }
   .locate-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px;}
+
+  .suggestions{
+    position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:2;
+    background:var(--paper); backdrop-filter:blur(16px);
+    border:1px solid var(--line); border-radius:18px;
+    overflow:hidden; box-shadow:0 12px 30px rgba(0,0,0,0.12);
+  }
+  .suggestion-item{
+    display:flex; flex-direction:column; gap:1px;
+    padding:11px 18px; cursor:pointer; text-align:left;
+    border-bottom:1px solid var(--line);
+    background:none; border-left:none; border-right:none; border-top:none;
+    width:100%; font-family:'Inter';
+  }
+  .suggestion-item:last-child{ border-bottom:none; }
+  .suggestion-item:hover, .suggestion-item.active{ background:rgba(255,255,255,0.5); }
+  .suggestion-item .s-name{ font-size:14px; font-weight:600; color:var(--ink); }
+  .suggestion-item .s-sub{ font-size:12px; color:var(--ink-soft); }
+
   .hero{ text-align:center; margin-top:64px; }
   .place{ font-size:19px; font-weight:600; letter-spacing:0.3px; color:var(--ink); }
   .place .country{ font-weight:400; color:var(--ink-soft); }
@@ -103,19 +168,24 @@
 
 <div class="sky-scene" aria-hidden="true">
   <div class="stars" id="stars"></div>
+  <div class="sun-rays" id="sunRays"></div>
   <div class="celestial sun" id="celestial"></div>
-  <div class="cloud c1" id="cloud1"></div>
-  <div class="cloud c2" id="cloud2"></div>
-  <div class="cloud c3" id="cloud3"></div>
-  <div class="rain" id="rain"></div>
+  <div id="cloudLayer"></div>
+  <div id="windLayer"></div>
+  <div id="rainLayer"></div>
+  <div id="lightningFlash"></div>
 </div>
 
 <div class="wrap">
-  <form class="search-row" id="searchForm" role="search">
-    <button type="button" class="locate-btn" id="locateBtn" title="Use my location" aria-label="Use my current location">📍</button>
-    <input type="text" id="cityInput" placeholder="Search a city — Chennai, Kuala Lumpur, Singapore…" autocomplete="off">
-    <button type="submit">Search</button>
-  </form>
+
+  <div class="search-wrap">
+    <form class="search-row" id="searchForm" role="search" autocomplete="off">
+      <button type="button" class="locate-btn" id="locateBtn" title="Use my location" aria-label="Use my current location">📍</button>
+      <input type="text" id="cityInput" placeholder="Search a city — Chennai, Kuala Lumpur, Singapore…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="suggestionsList">
+      <button type="submit">Search</button>
+    </form>
+    <div class="suggestions hidden" id="suggestionsList"></div>
+  </div>
 
   <div id="loadingMsg" class="state-msg">Finding the sky over Chennai…</div>
   <div id="errorMsg" class="state-msg hidden"></div>
@@ -154,8 +224,6 @@
   </div>
 </div>
 
-<!-- config.js defines window.OPENWEATHER_API_KEY. It is generated at deploy time and is
-     NOT committed to the repo (see .gitignore + GitHub Actions workflow). -->
 <script src="config.js"></script>
 <script>
 (function(){
@@ -164,6 +232,7 @@
   const els = {
     form: document.getElementById('searchForm'),
     input: document.getElementById('cityInput'),
+    suggestList: document.getElementById('suggestionsList'),
     locateBtn: document.getElementById('locateBtn'),
     loading: document.getElementById('loadingMsg'),
     error: document.getElementById('errorMsg'),
@@ -181,12 +250,19 @@
     hourlyScroll: document.getElementById('hourlyScroll'),
     daysList: document.getElementById('daysList'),
     celestial: document.getElementById('celestial'),
+    sunRays: document.getElementById('sunRays'),
     stars: document.getElementById('stars'),
-    rain: document.getElementById('rain'),
-    clouds: [document.getElementById('cloud1'), document.getElementById('cloud2'), document.getElementById('cloud3')]
+    cloudLayer: document.getElementById('cloudLayer'),
+    windLayer: document.getElementById('windLayer'),
+    rainLayer: document.getElementById('rainLayer'),
+    lightningFlash: document.getElementById('lightningFlash')
   };
 
-  // OpenWeatherMap condition code groups -> {icon, group}
+  let lightningTimer = null;
+  let currentSuggestions = [];
+  let activeSuggestionIdx = -1;
+  let debounceTimer = null;
+
   function ownGroup(code){
     if(code >= 200 && code < 300) return {icon:'⛈️', group:'storm', label:'Thunderstorm'};
     if(code >= 300 && code < 400) return {icon:'🌦️', group:'rain', label:'Drizzle'};
@@ -211,7 +287,9 @@
     snow_night:['பனி நிறைந்த இரவு', 'A snowy night, soft and still.'],
   };
 
-  function setSky(group, isDay){
+  /* ---------- Sky rendering ---------- */
+
+  function setPalette(group, isDay){
     const palettes = {
       clear_day:  ['#4A90D9','#7BB3E8','#DCEBF7'],
       clear_night:['#0B1330','#141C42','#1B2144'],
@@ -231,31 +309,138 @@
     document.documentElement.style.setProperty('--ink-soft', isDay ? 'rgba(18,32,58,0.62)' : 'rgba(237,239,246,0.62)');
     document.documentElement.style.setProperty('--line', isDay ? 'rgba(18,32,58,0.14)' : 'rgba(237,239,246,0.18)');
     document.documentElement.style.setProperty('--paper', isDay ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.08)');
-
-    els.celestial.className = 'celestial ' + (isDay ? 'sun' : 'moon');
-    els.stars.style.opacity = isDay ? '0' : '1';
-    const showClouds = (group === 'cloud' || group === 'rain' || group === 'storm' || group === 'snow');
-    els.clouds.forEach(c => c.style.opacity = showClouds ? '' : '0');
-    els.rain.style.opacity = (group === 'rain' || group === 'storm') ? '1' : '0';
   }
 
   function buildStars(){
     let html = '';
-    for(let i=0;i<60;i++){
+    for(let i=0;i<70;i++){
       const x = Math.random()*100, y = Math.random()*60, d = (Math.random()*3).toFixed(2);
       html += `<div class="star" style="left:${x}%;top:${y}%;animation-delay:${d}s;"></div>`;
     }
     els.stars.innerHTML = html;
   }
-  function buildRain(){
-    let html = '';
-    for(let i=0;i<70;i++){
-      const x = Math.random()*100, dur = (0.5+Math.random()*0.6).toFixed(2), delay=(Math.random()*2).toFixed(2);
-      html += `<div class="drop" style="left:${x}%;animation-duration:${dur}s;animation-delay:${delay}s;"></div>`;
+  buildStars();
+
+  // Realistic cloud puffs built from overlapping circles, count/speed/size driven by real data
+  function buildClouds(coverPercent, windKmh){
+    els.cloudLayer.innerHTML = '';
+    if(coverPercent < 5){ return; }
+    const count = Math.max(1, Math.min(9, Math.round(coverPercent / 12)));
+    // faster wind = shorter drift duration (clouds move quicker)
+    const baseDuration = Math.max(18, 85 - windKmh * 1.8);
+
+    for(let i=0;i<count;i++){
+      const depth = Math.random(); // 0 = far/small/slow, 1 = near/big/fast
+      const scale = 0.6 + depth * 0.9;
+      const w = Math.round(150 * scale);
+      const h = Math.round(46 * scale);
+      const top = 4 + Math.random()*40;
+      const opacity = 0.4 + depth*0.45;
+      const duration = baseDuration * (1.3 - depth*0.6);
+      const delay = -Math.random()*duration;
+      const cloud = document.createElement('div');
+      cloud.className = 'cloud';
+      cloud.style.cssText = `width:${w}px;height:${h}px;top:${top}%;left:-20%;opacity:${opacity.toFixed(2)};background:#fff;animation:driftCloud ${duration.toFixed(1)}s linear infinite;animation-delay:${delay.toFixed(1)}s;`;
+      // build organic puffs
+      const puffCount = 3 + Math.floor(Math.random()*2);
+      for(let p=0; p<puffCount; p++){
+        const ps = (0.45 + Math.random()*0.55) * h * 1.6;
+        const px = (p / puffCount) * w + Math.random()*10 - 5;
+        const py = -ps*0.4 + Math.random()*8;
+        const puff = document.createElement('div');
+        puff.className = 'puff';
+        puff.style.cssText = `width:${ps}px;height:${ps}px;left:${px}px;top:${py}px;`;
+        cloud.appendChild(puff);
+      }
+      els.cloudLayer.appendChild(cloud);
     }
-    els.rain.innerHTML = html;
   }
-  buildStars(); buildRain();
+
+  function buildWindLines(windKmh){
+    els.windLayer.innerHTML = '';
+    els.windLayer.style.opacity = windKmh > 18 ? '1' : '0';
+    if(windKmh <= 18) return;
+    const count = Math.min(14, Math.round(windKmh / 3));
+    let html = '';
+    for(let i=0;i<count;i++){
+      const top = Math.random()*100;
+      const dur = Math.max(1.2, 4.5 - windKmh/15);
+      const delay = Math.random()*dur;
+      const w = 40 + Math.random()*60;
+      html += `<div class="wind-line" style="top:${top}%;width:${w}px;animation-duration:${dur.toFixed(2)}s;animation-delay:${-delay.toFixed(2)}s;"></div>`;
+    }
+    els.windLayer.innerHTML = html;
+  }
+
+  function buildRain(group, windDeg, windKmh, rainVolume){
+    if(group !== 'rain' && group !== 'storm'){
+      els.rainLayer.style.opacity = '0';
+      els.rainLayer.innerHTML = '';
+      return;
+    }
+    els.rainLayer.style.opacity = '1';
+    // drift angle from wind direction (roughly), clamp for visual sense
+    const skew = Math.max(-40, Math.min(40, (windDeg - 180) / 4.5));
+    const intensity = rainVolume ? Math.min(1, rainVolume / 8) : (group === 'storm' ? 0.85 : 0.5);
+    const count = Math.round(50 + intensity * 90);
+    let html = '';
+    for(let i=0;i<count;i++){
+      const x = Math.random()*100;
+      const dur = (0.4 + Math.random()*0.5) / (0.6 + intensity*0.6);
+      const delay = Math.random()*2;
+      const fx = `${skew}px`;
+      html += `<div class="drop" style="left:${x}%;--fx:${fx};animation-duration:${dur.toFixed(2)}s;animation-delay:${delay.toFixed(2)}s;"></div>`;
+    }
+    els.rainLayer.innerHTML = html;
+  }
+
+  function startLightning(){
+    stopLightning();
+    function flash(){
+      els.lightningFlash.style.transition = 'opacity 0.08s';
+      els.lightningFlash.style.opacity = '0.85';
+      setTimeout(()=>{ els.lightningFlash.style.opacity = '0'; }, 90);
+      setTimeout(()=>{
+        els.lightningFlash.style.opacity = '0.4';
+        setTimeout(()=>{ els.lightningFlash.style.opacity = '0'; }, 70);
+      }, 180);
+    }
+    function schedule(){
+      const next = 4000 + Math.random()*9000;
+      lightningTimer = setTimeout(()=>{ flash(); schedule(); }, next);
+    }
+    schedule();
+  }
+  function stopLightning(){
+    if(lightningTimer){ clearTimeout(lightningTimer); lightningTimer = null; }
+    els.lightningFlash.style.opacity = '0';
+  }
+
+  function renderSky(current){
+    const code = current.weather[0].id;
+    const info = ownGroup(code);
+    const isDay = (current.dt > current.sys.sunrise && current.dt < current.sys.sunset);
+    const windKmh = current.wind.speed * 3.6;
+    const windDeg = current.wind.deg || 180;
+    const cover = current.clouds ? current.clouds.all : 0;
+    const rainVol = current.rain ? (current.rain['1h'] || current.rain['3h'] || 0) : 0;
+
+    setPalette(info.group, isDay);
+
+    els.celestial.className = 'celestial ' + (isDay ? 'sun' : 'moon');
+    els.stars.style.opacity = isDay ? '0' : '1';
+    els.sunRays.style.opacity = (isDay && info.group === 'clear') ? '1' : '0';
+
+    buildClouds(info.group === 'clear' ? Math.min(cover,15) : Math.max(cover, 25), windKmh);
+    buildWindLines(windKmh);
+    buildRain(info.group, windDeg, windKmh, rainVol);
+
+    if(info.group === 'storm'){ startLightning(); } else { stopLightning(); }
+
+    return { info, isDay };
+  }
+
+  /* ---------- Formatting ---------- */
 
   function formatHour(unixSec, tzOffsetSec){
     const d = new Date((unixSec + tzOffsetSec) * 1000);
@@ -270,13 +455,13 @@
     return d.toLocaleDateString('en-US', {weekday:'short', timeZone:'UTC'});
   }
 
-  async function geocode(name){
-    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(name)}&limit=1&appid=${API_KEY}`;
+  /* ---------- API calls ---------- */
+
+  async function geocodeSearch(name, limit){
+    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(name)}&limit=${limit}&appid=${API_KEY}`;
     const res = await fetch(url);
     if(!res.ok) throw new Error('Geocoding failed');
-    const data = await res.json();
-    if(!data.length) throw new Error('City not found');
-    return { lat:data[0].lat, lon:data[0].lon, name:data[0].name, country:data[0].country || '' };
+    return res.json();
   }
 
   async function fetchCurrent(lat, lon){
@@ -285,7 +470,6 @@
     if(!res.ok) throw new Error('Current weather fetch failed');
     return res.json();
   }
-
   async function fetchForecast(lat, lon){
     const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
     const res = await fetch(url);
@@ -294,7 +478,6 @@
   }
 
   function aggregateDaily(list, tzOffsetSec){
-    // Group OWM's 3-hour steps into calendar days (using city-local date)
     const days = {};
     list.forEach(item => {
       const localDate = new Date((item.dt + tzOffsetSec) * 1000);
@@ -303,30 +486,22 @@
       days[key].temps.push(item.main.temp);
       const hour = localDate.getUTCHours();
       const diff = Math.abs(hour - 13);
-      if(diff < days[key].middayDiff){
-        days[key].middayDiff = diff;
-        days[key].middayCode = item.weather[0].id;
-      }
+      if(diff < days[key].middayDiff){ days[key].middayDiff = diff; days[key].middayCode = item.weather[0].id; }
     });
     return Object.keys(days).slice(0,5).map(key => {
       const d = days[key];
-      return {
-        dt: d.dt,
-        max: Math.max(...d.temps),
-        min: Math.min(...d.temps),
-        code: d.middayCode
-      };
+      return { dt: d.dt, max: Math.max(...d.temps), min: Math.min(...d.temps), code: d.middayCode };
     });
   }
+
+  /* ---------- Render weather panel ---------- */
 
   function render(place, current, forecast){
     els.placeName.textContent = place.name;
     els.placeCountry.textContent = place.country || '';
 
     const tzOffset = current.timezone || 0;
-    const code = current.weather[0].id;
-    const info = ownGroup(code);
-    const isDay = (current.dt > current.sys.sunrise && current.dt < current.sys.sunset);
+    const { info, isDay } = renderSky(current);
 
     els.tempMain.innerHTML = `${Math.round(current.main.temp)}<sup>°C</sup>`;
     els.conditionText.textContent = `${info.icon} ${current.weather[0].description}`;
@@ -339,8 +514,6 @@
     const mood = MOODS[moodKey] || MOODS.clear_day;
     els.moodTa.textContent = mood[0];
     els.moodEn.textContent = mood[1];
-
-    setSky(info.group, isDay);
 
     let hHtml = '';
     forecast.list.slice(0,8).forEach((item, i) => {
@@ -371,7 +544,28 @@
     els.content.classList.remove('hidden');
   }
 
-  async function loadCity(name){
+  async function loadPlace(place){
+    if(!API_KEY){
+      els.loading.classList.add('hidden');
+      els.error.textContent = 'No OpenWeatherMap API key found. See README for setup.';
+      els.error.classList.remove('hidden');
+      return;
+    }
+    els.loading.textContent = `Finding the sky over ${place.name}…`;
+    els.loading.classList.remove('hidden');
+    els.error.classList.add('hidden');
+    els.content.classList.add('hidden');
+    try{
+      const [current, forecast] = await Promise.all([fetchCurrent(place.lat, place.lon), fetchForecast(place.lat, place.lon)]);
+      render(place, current, forecast);
+    }catch(err){
+      els.loading.classList.add('hidden');
+      els.error.textContent = `Couldn't load weather for "${place.name}". Please try again.`;
+      els.error.classList.remove('hidden');
+    }
+  }
+
+  async function loadCityByName(name){
     if(!API_KEY){
       els.loading.classList.add('hidden');
       els.error.textContent = 'No OpenWeatherMap API key found. See README for setup.';
@@ -383,9 +577,10 @@
     els.error.classList.add('hidden');
     els.content.classList.add('hidden');
     try{
-      const place = await geocode(name);
-      const [current, forecast] = await Promise.all([fetchCurrent(place.lat, place.lon), fetchForecast(place.lat, place.lon)]);
-      render(place, current, forecast);
+      const results = await geocodeSearch(name, 1);
+      if(!results.length) throw new Error('not found');
+      const r = results[0];
+      await loadPlace({ lat:r.lat, lon:r.lon, name:r.name, country:r.country || '' });
     }catch(err){
       els.loading.classList.add('hidden');
       els.error.textContent = `Couldn't find "${name}". Try a different spelling or a nearby larger city.`;
@@ -413,10 +608,91 @@
     }
   }
 
+  /* ---------- Autocomplete ---------- */
+
+  function renderSuggestions(results){
+    currentSuggestions = results;
+    activeSuggestionIdx = -1;
+    if(!results.length){
+      els.suggestList.classList.add('hidden');
+      els.suggestList.innerHTML = '';
+      return;
+    }
+    els.suggestList.innerHTML = results.map((r, i) => {
+      const sub = [r.state, r.country].filter(Boolean).join(', ');
+      return `<button type="button" class="suggestion-item" data-idx="${i}">
+        <span class="s-name">${r.name}</span>
+        <span class="s-sub">${sub}</span>
+      </button>`;
+    }).join('');
+    els.suggestList.classList.remove('hidden');
+    els.input.setAttribute('aria-expanded', 'true');
+  }
+
+  function hideSuggestions(){
+    els.suggestList.classList.add('hidden');
+    els.suggestList.innerHTML = '';
+    currentSuggestions = [];
+    activeSuggestionIdx = -1;
+    els.input.setAttribute('aria-expanded', 'false');
+  }
+
+  function pickSuggestion(idx){
+    const r = currentSuggestions[idx];
+    if(!r) return;
+    els.input.value = `${r.name}${r.country ? ', ' + r.country : ''}`;
+    hideSuggestions();
+    loadPlace({ lat:r.lat, lon:r.lon, name:r.name, country:r.country || '' });
+  }
+
+  els.input.addEventListener('input', function(){
+    const v = els.input.value.trim();
+    clearTimeout(debounceTimer);
+    if(v.length < 2){ hideSuggestions(); return; }
+    debounceTimer = setTimeout(async () => {
+      try{
+        const results = await geocodeSearch(v, 5);
+        renderSuggestions(results);
+      }catch(e){ hideSuggestions(); }
+    }, 350);
+  });
+
+  els.input.addEventListener('keydown', function(e){
+    if(els.suggestList.classList.contains('hidden')) return;
+    const items = els.suggestList.querySelectorAll('.suggestion-item');
+    if(e.key === 'ArrowDown'){
+      e.preventDefault();
+      activeSuggestionIdx = Math.min(activeSuggestionIdx + 1, items.length - 1);
+      items.forEach((it,i)=>it.classList.toggle('active', i===activeSuggestionIdx));
+    } else if(e.key === 'ArrowUp'){
+      e.preventDefault();
+      activeSuggestionIdx = Math.max(activeSuggestionIdx - 1, 0);
+      items.forEach((it,i)=>it.classList.toggle('active', i===activeSuggestionIdx));
+    } else if(e.key === 'Enter'){
+      if(activeSuggestionIdx >= 0){
+        e.preventDefault();
+        pickSuggestion(activeSuggestionIdx);
+      }
+    } else if(e.key === 'Escape'){
+      hideSuggestions();
+    }
+  });
+
+  els.suggestList.addEventListener('click', function(e){
+    const btn = e.target.closest('.suggestion-item');
+    if(!btn) return;
+    pickSuggestion(parseInt(btn.dataset.idx, 10));
+  });
+
+  document.addEventListener('click', function(e){
+    if(!e.target.closest('.search-wrap')) hideSuggestions();
+  });
+
   els.form.addEventListener('submit', function(e){
     e.preventDefault();
     const v = els.input.value.trim();
-    if(v) loadCity(v);
+    hideSuggestions();
+    if(v) loadCityByName(v);
   });
 
   els.locateBtn.addEventListener('click', function(){
@@ -431,7 +707,7 @@
     );
   });
 
-  loadCity('Chennai');
+  loadCityByName('Chennai');
 })();
 </script>
 </body>
