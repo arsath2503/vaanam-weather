@@ -249,8 +249,43 @@
   const glowTexture = makeSoftTexture('rgba(255,255,255,1)', 'rgba(255,255,255,0.35)', 0.35);
   const cloudTexture = makeSoftTexture('rgba(255,255,255,0.9)', 'rgba(255,255,255,0.25)', 0.5);
 
+  function makeBirdTexture(){
+    const c = document.createElement('canvas');
+    c.width = 64; c.height = 24;
+    const ctx = c.getContext('2d');
+    ctx.strokeStyle = 'rgba(20,26,38,0.85)';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(4,14); ctx.quadraticCurveTo(18,2, 32,14);
+    ctx.quadraticCurveTo(46,2, 60,14);
+    ctx.stroke();
+    return new THREE.CanvasTexture(c);
+  }
+  const birdTexture = makeBirdTexture();
+
   /* ---------- Celestial body + halo glow ---------- */
-  const celestialMat = new THREE.MeshBasicMaterial({ color: 0xe4e9f5 });
+  function makeMoonTexture(){
+    const size = 256;
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#e6ebf5';
+    ctx.fillRect(0,0,size,size);
+    const craters = [[70,60,18],[150,90,12],[110,150,22],[190,170,10],[60,180,14],[170,50,8]];
+    craters.forEach(([x,y,r])=>{
+      const g = ctx.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0,'rgba(180,190,205,0.9)');
+      g.addColorStop(1,'rgba(180,190,205,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    });
+    return new THREE.CanvasTexture(c);
+  }
+  const moonTexture = makeMoonTexture();
+  const sunMat = new THREE.MeshBasicMaterial({ color: 0xfff6dc });
+  const moonMat = new THREE.MeshBasicMaterial({ map: moonTexture, color: 0xe8edf7 });
+  const celestialMat = sunMat;
   const celestialMesh = new THREE.Mesh(new THREE.SphereGeometry(6, 24, 24), celestialMat);
   celestialMesh.position.set(60, 55, -260);
   scene.add(celestialMesh);
@@ -308,6 +343,26 @@
       cloud.position.set(-220 + Math.random()*440, 20 + Math.random()*60, -80 - depth*180);
       cloud.userData.speed *= (0.5 + windKmh/35);
       cloudGroup.add(cloud);
+    }
+  }
+
+  /* ---------- Birds ---------- */
+  const birdGroup = new THREE.Group();
+  scene.add(birdGroup);
+
+  function rebuildBirds(show){
+    while(birdGroup.children.length) birdGroup.remove(birdGroup.children[0]);
+    if(!show || reduceMotion) return;
+    const count = 3 + Math.floor(Math.random()*3);
+    for(let i=0;i<count;i++){
+      const mat = new THREE.SpriteMaterial({ map: birdTexture, transparent:true, opacity:0.8, depthWrite:false });
+      const spr = new THREE.Sprite(mat);
+      spr.scale.set(5,2,1);
+      spr.position.set(-180 + Math.random()*100, 25 + Math.random()*25, -60 - Math.random()*60);
+      spr.userData.speed = 8 + Math.random()*6;
+      spr.userData.flapPhase = Math.random()*10;
+      spr.userData.baseY = spr.position.y;
+      birdGroup.add(spr);
     }
   }
 
@@ -410,7 +465,8 @@
     scene.fog.near = isMist ? 30 : 80;
     scene.fog.far = isMist ? 220 : 550;
 
-    celestialMat.color.set(p.celestial);
+    celestialMesh.material = isDay ? sunMat : moonMat;
+    (isDay ? sunMat : moonMat).color.set(p.celestial);
     haloMat.color.set(p.celestial);
     haloMat.opacity = p.haloOp;
     celestialMesh.position.y = isDay ? 55 : 62;
@@ -419,6 +475,7 @@
     starMat.opacity = isDay ? 0 : 0.85;
 
     rebuildClouds(group === 'clear' ? Math.min(cloudCoverPct,15) : Math.max(cloudCoverPct, isMist?45:25), windKmh);
+    rebuildBirds(isDay && (group === 'clear' || group === 'cloud'));
 
     rainActive = rainActiveFlag;
     rainMat.opacity = rainActive ? 0.5 : 0;
@@ -441,6 +498,12 @@
     cloudGroup.children.forEach(c => {
       c.position.x += c.userData.speed * dt;
       if(c.position.x > 260) c.position.x = -260;
+    });
+
+    birdGroup.children.forEach(b => {
+      b.position.x += b.userData.speed * dt;
+      b.position.y = b.userData.baseY + Math.sin(t*6 + b.userData.flapPhase) * 1.2;
+      if(b.position.x > 220) b.position.x = -220;
     });
 
     if(rainActive){
