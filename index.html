@@ -3,7 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vaanam — வானம்</title>
+<title>Vaanam — Live Sky Weather</title>
+<meta name="description" content="A weather app that shows you the real sky — live sun, moon, clouds, rain and stars for any city, with a real skyline silhouette.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:title" content="Vaanam — Live Sky Weather">
+<meta property="og:description" content="A weather app that shows you the real sky for any city — live sun, moon, clouds, rain, and skyline.">
+<meta property="og:image" content="og-image.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Vaanam — Live Sky Weather">
+<meta name="twitter:description" content="A weather app that shows you the real sky for any city.">
+<meta name="twitter:image" content="og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -65,6 +75,24 @@
   .suggestion-item .s-name{ font-size:14px; font-weight:600; color:var(--ink); }
   .suggestion-item .s-sub{ font-size:12px; color:var(--ink-soft); }
 
+  .recent-chips{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px; }
+  .chip{
+    background:var(--paper-edge); backdrop-filter:blur(12px); border:1px solid var(--line);
+    border-radius:999px; padding:6px 14px; font-size:12.5px; color:var(--ink); cursor:pointer;
+    transition:background .2s;
+  }
+  .chip:hover{ background:rgba(255,255,255,0.14); }
+  .chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .temp-row{ display:flex; align-items:center; justify-content:center; gap:14px; }
+  .unit-toggle{
+    background:var(--paper-edge); border:1px solid var(--line); color:var(--ink-soft);
+    border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer;
+    backdrop-filter:blur(10px); align-self:center; margin-top:20px;
+  }
+  .unit-toggle:hover{ color:var(--ink); }
+  .unit-toggle:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
   .hero{ text-align:center; margin-top:56px; position:relative; }
   .place{ font-size:18px; font-weight:600; letter-spacing:0.3px; color:var(--ink); display:flex; align-items:center; justify-content:center; gap:8px; }
   .place img.flag{ width:22px; height:16px; border-radius:2px; box-shadow:0 0 0 1px rgba(255,255,255,0.15); }
@@ -105,6 +133,9 @@
   .footer-note .ta{ font-family:'Noto Sans Tamil'; display:block; margin-bottom:4px; }
   .footer-note .signature{ display:block; margin-top:10px; font-weight:600; letter-spacing:0.4px; color:var(--ink); opacity:0.85; }
   .state-msg{ text-align:center; margin-top:60px; color:var(--ink-soft); font-size:14px; position:relative; z-index:3; }
+  .spinner{ width:22px; height:22px; margin:0 auto 12px; border-radius:50%; border:2px solid rgba(255,255,255,0.25); border-top-color:rgba(255,255,255,0.85); animation:spin 0.8s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce){ .spinner{ animation:none; } }
   .hidden{ display:none !important; }
   @media (max-width:480px){ .stat-row{ gap:16px; } .day{ grid-template-columns: 66px 1fr auto auto; font-size:13px; } }
   @media (max-width:380px){
@@ -139,14 +170,18 @@
     </form>
     <div class="suggestions hidden" id="suggestionsList"></div>
   </div>
+  <div class="recent-chips" id="recentChips"></div>
 
-  <div id="loadingMsg" class="state-msg">Watching the sky over Chennai…</div>
+  <div id="loadingMsg" class="state-msg"><div class="spinner"></div><span id="loadingText">Watching the sky over Chennai…</span></div>
   <div id="errorMsg" class="state-msg hidden"></div>
 
   <div id="content" class="hidden">
     <div class="hero">
       <div class="place"><img class="flag" id="placeFlag" alt=""><span id="placeName">—</span> <span class="country" id="placeCountry"></span></div>
-      <div class="temp" id="tempMain">—<sup>°C</sup></div>
+      <div class="temp-row">
+        <div class="temp" id="tempMain">—<sup id="tempUnitSup">°C</sup></div>
+        <button type="button" class="unit-toggle" id="unitToggle" aria-label="Toggle Celsius/Fahrenheit">°C | °F</button>
+      </div>
       <div class="condition" id="conditionText">—</div>
       <div class="mood">
         <span class="ta" id="moodTa"></span>
@@ -168,6 +203,15 @@
     <div class="panel">
       <h2>5-day outlook</h2>
       <div class="days" id="daysList"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Sun &amp; air</h2>
+      <div class="stat-row" style="margin-top:0;">
+        <div class="stat"><div class="val" id="sunrise">—</div><div class="lab">Sunrise</div></div>
+        <div class="stat"><div class="val" id="sunset">—</div><div class="lab">Sunset</div></div>
+        <div class="stat"><div class="val" id="aqi">—</div><div class="lab">Air Quality</div></div>
+      </div>
     </div>
 
     <div class="footer-note">
@@ -546,12 +590,19 @@
     suggestList: document.getElementById('suggestionsList'),
     locateBtn: document.getElementById('locateBtn'),
     loading: document.getElementById('loadingMsg'),
+    loadingText: document.getElementById('loadingText'),
     error: document.getElementById('errorMsg'),
     content: document.getElementById('content'),
     placeName: document.getElementById('placeName'),
     placeFlag: document.getElementById('placeFlag'),
     placeCountry: document.getElementById('placeCountry'),
     tempMain: document.getElementById('tempMain'),
+    tempUnitSup: document.getElementById('tempUnitSup'),
+    unitToggle: document.getElementById('unitToggle'),
+    recentChips: document.getElementById('recentChips'),
+    sunrise: document.getElementById('sunrise'),
+    sunset: document.getElementById('sunset'),
+    aqi: document.getElementById('aqi'),
     conditionText: document.getElementById('conditionText'),
     moodTa: document.getElementById('moodTa'),
     moodEn: document.getElementById('moodEn'),
@@ -566,6 +617,46 @@
   let currentSuggestions = [];
   let activeSuggestionIdx = -1;
   let debounceTimer = null;
+  let unit = 'C';
+  let lastCurrent = null, lastForecast = null, lastPlace = null, lastAqi = null;
+
+  function celsiusToF(c){ return c * 9/5 + 32; }
+  function fmtTemp(c){ return Math.round(unit === 'C' ? c : celsiusToF(c)); }
+
+  const COMPASS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  function degToCompass(deg){
+    return COMPASS[Math.round((deg % 360) / 22.5) % 16];
+  }
+
+  const AQI_LABELS = { 1:'Good', 2:'Fair', 3:'Moderate', 4:'Poor', 5:'Very Poor' };
+
+  function getRecentCities(){
+    try{ return JSON.parse(localStorage.getItem('vaanam_recent_cities') || '[]'); }
+    catch(e){ return []; }
+  }
+  function saveRecentCity(place){
+    try{
+      let list = getRecentCities().filter(c => !(c.name === place.name && c.country === place.country));
+      list.unshift({ name:place.name, country:place.country, lat:place.lat, lon:place.lon });
+      list = list.slice(0,5);
+      localStorage.setItem('vaanam_recent_cities', JSON.stringify(list));
+      renderRecentChips();
+    }catch(e){}
+  }
+  function renderRecentChips(){
+    const list = getRecentCities();
+    if(!list.length){ els.recentChips.innerHTML=''; return; }
+    els.recentChips.innerHTML = list.map((c,i) =>
+      `<button type="button" class="chip" data-idx="${i}">${c.name}</button>`
+    ).join('');
+  }
+  els.recentChips.addEventListener('click', function(e){
+    const btn = e.target.closest('.chip');
+    if(!btn) return;
+    const list = getRecentCities();
+    const c = list[parseInt(btn.dataset.idx,10)];
+    if(c) loadPlace(c);
+  });
 
   // Real flag IMAGES via flagcdn.com — works on every OS, unlike emoji flags
   // (Windows in particular renders flag emoji as plain two-letter text, not a glyph).
@@ -765,6 +856,12 @@
     if(!res.ok) throw new Error('Forecast fetch failed');
     return res.json();
   }
+  async function fetchAQI(lat, lon){
+    const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('AQI fetch failed');
+    return res.json();
+  }
 
   function aggregateDaily(list, tzOffsetSec){
     const days = {};
@@ -783,10 +880,22 @@
     });
   }
 
-  function render(place, current, forecast){
+  function formatClockTime(unixSec, tzOffsetSec){
+    const d = new Date((unixSec + tzOffsetSec) * 1000);
+    let h = d.getUTCHours();
+    const m = d.getUTCMinutes();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if(h===0) h = 12;
+    return `${h}:${m.toString().padStart(2,'0')} ${ampm}`;
+  }
+
+  function render(place, current, forecast, aqiData){
+    lastCurrent = current; lastForecast = forecast; lastPlace = place; lastAqi = aqiData;
+
     els.placeName.textContent = place.name;
     els.placeCountry.textContent = place.country || '';
     setFlagImage(place.country);
+    saveRecentCity({ ...place, lat: place.lat ?? current.coord?.lat, lon: place.lon ?? current.coord?.lon });
 
     const tzOffset = current.timezone || 0;
     const code = current.weather[0].id;
@@ -803,12 +912,20 @@
     applyLandmark(place.name, place.country);
     document.getElementById('landmarkStrip').style.opacity = isMist ? '0.4' : '1';
 
-    els.tempMain.innerHTML = `${Math.round(current.main.temp)}<sup>°C</sup>`;
+    els.tempMain.innerHTML = `${fmtTemp(current.main.temp)}<sup id="tempUnitSup">°${unit}</sup>`;
     els.conditionText.textContent = `${info.icon} ${current.weather[0].description}`;
-    els.feelsLike.textContent = `${Math.round(current.main.feels_like)}°`;
+    els.feelsLike.textContent = `${fmtTemp(current.main.feels_like)}°`;
     els.humidity.textContent = `${current.main.humidity}%`;
-    els.wind.textContent = `${Math.round(windKmh)} km/h`;
+    els.wind.textContent = `${Math.round(windKmh)} km/h ${degToCompass(current.wind.deg||0)}`;
     els.pressure.textContent = `${current.main.pressure} hPa`;
+    els.sunrise.textContent = formatClockTime(current.sys.sunrise, tzOffset);
+    els.sunset.textContent = formatClockTime(current.sys.sunset, tzOffset);
+    if(aqiData && aqiData.list && aqiData.list.length){
+      const aqiVal = aqiData.list[0].main.aqi;
+      els.aqi.textContent = `${AQI_LABELS[aqiVal] || '—'}`;
+    } else {
+      els.aqi.textContent = '—';
+    }
 
     const moodKey = `${isMist?'mist':info.group}_${isDay?'day':'night'}`;
     const mood = MOODS[moodKey] || MOODS.clear_day;
@@ -821,7 +938,7 @@
       hHtml += `<div class="hour">
         <div class="t">${i===0 ? 'Now' : formatHour(item.dt, tzOffset)}</div>
         <div class="ic">${hInfo.icon}</div>
-        <div class="tmp">${Math.round(item.main.temp)}°</div>
+        <div class="tmp">${fmtTemp(item.main.temp)}°</div>
       </div>`;
     });
     els.hourlyScroll.innerHTML = hHtml;
@@ -833,8 +950,8 @@
       dHtml += `<div class="day">
         <div class="dname">${formatDay(d.dt, tzOffset, i)}</div>
         <div class="dic">${dInfo.icon}</div>
-        <div class="range">${Math.round(d.max)}°</div>
-        <div class="lo">${Math.round(d.min)}°</div>
+        <div class="range">${fmtTemp(d.max)}°</div>
+        <div class="lo">${fmtTemp(d.min)}°</div>
       </div>`;
     });
     els.daysList.innerHTML = dHtml;
@@ -851,13 +968,17 @@
       els.error.classList.remove('hidden');
       return;
     }
-    els.loading.textContent = `Watching the sky over ${place.name}…`;
+    els.loadingText.textContent = `Watching the sky over ${place.name}…`;
     els.loading.classList.remove('hidden');
     els.error.classList.add('hidden');
     els.content.classList.add('hidden');
     try{
-      const [current, forecast] = await Promise.all([fetchCurrent(place.lat, place.lon), fetchForecast(place.lat, place.lon)]);
-      render(place, current, forecast);
+      const [current, forecast, aqiData] = await Promise.all([
+        fetchCurrent(place.lat, place.lon),
+        fetchForecast(place.lat, place.lon),
+        fetchAQI(place.lat, place.lon).catch(()=>null)
+      ]);
+      render(place, current, forecast, aqiData);
     }catch(err){
       els.loading.classList.add('hidden');
       els.error.textContent = `Couldn't load weather for "${place.name}". Please try again.`;
@@ -872,7 +993,7 @@
       els.error.classList.remove('hidden');
       return;
     }
-    els.loading.textContent = `Watching the sky over ${name}…`;
+    els.loadingText.textContent = `Watching the sky over ${name}…`;
     els.loading.classList.remove('hidden');
     els.error.classList.add('hidden');
     els.content.classList.add('hidden');
@@ -894,13 +1015,13 @@
       els.error.classList.remove('hidden');
       return;
     }
-    els.loading.textContent = `Watching the sky above you…`;
+    els.loadingText.textContent = `Watching the sky above you…`;
     els.loading.classList.remove('hidden');
     els.error.classList.add('hidden');
     els.content.classList.add('hidden');
     try{
-      const [current, forecast] = await Promise.all([fetchCurrent(lat, lon), fetchForecast(lat, lon)]);
-      render({name: current.name || 'Your location', country: current.sys ? current.sys.country : ''}, current, forecast);
+      const current = await fetchCurrent(lat, lon);
+      await loadPlace({ lat, lon, name: current.name || 'Your location', country: current.sys ? current.sys.country : '' });
     }catch(err){
       els.loading.classList.add('hidden');
       els.error.textContent = `Couldn't load weather for your location.`;
@@ -987,7 +1108,30 @@
     );
   });
 
-  loadCityByName('Chennai');
+  els.unitToggle.addEventListener('click', function(){
+    unit = unit === 'C' ? 'F' : 'C';
+    if(lastCurrent && lastForecast && lastPlace){
+      render(lastPlace, lastCurrent, lastForecast, lastAqi);
+    }
+  });
+
+  renderRecentChips();
+
+  // Try to auto-detect location on first load; fall back to Chennai if denied/unavailable/slow.
+  (function initialLoad(){
+    let settled = false;
+    const fallback = () => { if(!settled){ settled = true; loadCityByName('Chennai'); } };
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(
+        pos => { if(!settled){ settled = true; loadCoords(pos.coords.latitude, pos.coords.longitude); } },
+        fallback,
+        { timeout: 4000 }
+      );
+      setTimeout(fallback, 4500);
+    } else {
+      fallback();
+    }
+  })();
 })();
 </script>
 </body>
