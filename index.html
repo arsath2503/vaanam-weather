@@ -89,7 +89,7 @@
   .chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .chip-surprise{ font-weight:600; }
 
-  .local-time{ font-size:12.5px; color:var(--ink-soft); margin-top:4px; }
+  .local-time{ font-size:15px; font-weight:500; color:var(--ink); margin-top:6px; }
 
   .share-btn{
     margin-top:22px; background:var(--paper-edge); border:1px solid var(--line); color:var(--ink);
@@ -148,7 +148,7 @@
   .footer-note{ text-align:center; margin-top:28px; font-size:12px; color:var(--ink-soft); }
   .footer-note .ta{ font-family:'Noto Sans Tamil'; display:block; margin-bottom:4px; }
   .footer-note .signature{ display:block; margin-top:10px; font-weight:600; letter-spacing:0.4px; color:var(--ink); opacity:0.85; }
-  .footer-note .visit-count{ display:block; margin-top:6px; font-size:11px; opacity:0.6; }
+  .footer-note .visit-badge{ display:block; margin:8px auto 0; height:20px; opacity:0.85; }
   .state-msg{ text-align:center; margin-top:60px; color:var(--ink-soft); font-size:14px; position:relative; z-index:3; }
   .spinner{ width:22px; height:22px; margin:0 auto 12px; border-radius:50%; border:2px solid rgba(255,255,255,0.25); border-top-color:rgba(255,255,255,0.85); animation:spin 0.8s linear infinite; }
   @keyframes spin{ to{ transform:rotate(360deg); } }
@@ -240,7 +240,7 @@
       <span class="ta">வானம் பார்த்து, நாள் திட்டமிடுங்கள்</span>
       Data from OpenWeatherMap · Vaanam
       <span class="signature">Created by Arsath</span>
-      <span class="visit-count" id="visitCount"></span>
+      <img class="visit-badge" id="visitBadge" alt="visit count" src="" />
     </div>
   </div>
 </div>
@@ -1221,18 +1221,15 @@
 
   renderRecentChips();
 
-  // Simple visit counter using CountAPI (free, no key, no backend needed).
-  // Namespace is unique to this project so it doesn't collide with anyone else's counter.
+  // Visit counter badge via visitor-badge.laobi.icu — actively maintained and verified working.
+  // (The previous hits.seeyoufarm.com endpoint was returning a 404 — switched after confirming this one.)
   (function trackVisit(){
-    const el = document.getElementById('visitCount');
-    fetch('https://api.countapi.xyz/hit/vaanam-arsath2503/visits')
-      .then(res => res.ok ? res.json() : Promise.reject())
-      .then(data => {
-        if(data && typeof data.value === 'number'){
-          el.textContent = `👁 ${data.value.toLocaleString()} visits`;
-        }
-      })
-      .catch(() => { /* fail silently — counter is decorative, never block the app */ });
+    const badge = document.getElementById('visitBadge');
+    badge.onerror = function(){
+      badge.style.display = 'none';
+      badge.insertAdjacentHTML('afterend', '<span style="font-size:11px;opacity:0.5;">visit counter unavailable</span>');
+    };
+    badge.src = 'https://visitor-badge.laobi.icu/badge?page_id=arsath2503.vaanam-weather';
   })();
 
   // Initial load priority:
