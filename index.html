@@ -78,7 +78,8 @@
   .suggestion-item .s-name{ font-size:14px; font-weight:600; color:var(--ink); }
   .suggestion-item .s-sub{ font-size:12px; color:var(--ink-soft); }
 
-  .recent-chips{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px; }
+  .recent-chips{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .quick-actions{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px; }
   .chip{
     background:var(--paper-edge); backdrop-filter:blur(12px); border:1px solid var(--line);
     border-radius:999px; padding:6px 14px; font-size:12.5px; color:var(--ink); cursor:pointer;
@@ -86,6 +87,17 @@
   }
   .chip:hover{ background:rgba(255,255,255,0.14); }
   .chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .chip-surprise{ font-weight:600; }
+
+  .local-time{ font-size:12.5px; color:var(--ink-soft); margin-top:4px; }
+
+  .share-btn{
+    margin-top:22px; background:var(--paper-edge); border:1px solid var(--line); color:var(--ink);
+    border-radius:999px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;
+    backdrop-filter:blur(10px); transition:background .2s;
+  }
+  .share-btn:hover{ background:rgba(255,255,255,0.14); }
+  .share-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
 
   .temp-row{ display:flex; align-items:center; justify-content:center; gap:14px; }
   .unit-toggle{
@@ -136,6 +148,7 @@
   .footer-note{ text-align:center; margin-top:28px; font-size:12px; color:var(--ink-soft); }
   .footer-note .ta{ font-family:'Noto Sans Tamil'; display:block; margin-bottom:4px; }
   .footer-note .signature{ display:block; margin-top:10px; font-weight:600; letter-spacing:0.4px; color:var(--ink); opacity:0.85; }
+  .footer-note .visit-count{ display:block; margin-top:6px; font-size:11px; opacity:0.6; }
   .state-msg{ text-align:center; margin-top:60px; color:var(--ink-soft); font-size:14px; position:relative; z-index:3; }
   .spinner{ width:22px; height:22px; margin:0 auto 12px; border-radius:50%; border:2px solid rgba(255,255,255,0.25); border-top-color:rgba(255,255,255,0.85); animation:spin 0.8s linear infinite; }
   @keyframes spin{ to{ transform:rotate(360deg); } }
@@ -174,7 +187,10 @@
     </form>
     <div class="suggestions hidden" id="suggestionsList"></div>
   </div>
-  <div class="recent-chips" id="recentChips"></div>
+  <div class="quick-actions">
+    <button type="button" class="chip chip-surprise" id="surpriseBtn">🎲 Surprise me</button>
+    <div class="recent-chips" id="recentChips"></div>
+  </div>
 
   <div id="loadingMsg" class="state-msg"><div class="spinner"></div><span id="loadingText">Watching the sky over Chennai…</span></div>
   <div id="errorMsg" class="state-msg hidden"></div>
@@ -182,6 +198,7 @@
   <div id="content" class="hidden">
     <div class="hero">
       <div class="place"><img class="flag" id="placeFlag" alt=""><span id="placeName">—</span> <span class="country" id="placeCountry"></span></div>
+      <div class="local-time" id="localTime"></div>
       <div class="temp-row">
         <div class="temp" id="tempMain">—<sup id="tempUnitSup">°C</sup></div>
         <button type="button" class="unit-toggle" id="unitToggle" aria-label="Toggle Celsius/Fahrenheit"><span id="uC" class="unit-active">°C</span> | <span id="uF">°F</span></button>
@@ -197,6 +214,7 @@
         <div class="stat"><div class="val" id="wind">—</div><div class="lab">Wind</div></div>
         <div class="stat"><div class="val" id="pressure">—</div><div class="lab">Pressure</div></div>
       </div>
+      <button type="button" class="share-btn" id="shareBtn">🔗 Share this city</button>
     </div>
 
     <div class="panel">
@@ -222,6 +240,7 @@
       <span class="ta">வானம் பார்த்து, நாள் திட்டமிடுங்கள்</span>
       Data from OpenWeatherMap · Vaanam
       <span class="signature">Created by Arsath</span>
+      <span class="visit-count" id="visitCount"></span>
     </div>
   </div>
 </div>
@@ -604,6 +623,9 @@
     tempUnitSup: document.getElementById('tempUnitSup'),
     unitToggle: document.getElementById('unitToggle'),
     recentChips: document.getElementById('recentChips'),
+    surpriseBtn: document.getElementById('surpriseBtn'),
+    shareBtn: document.getElementById('shareBtn'),
+    localTime: document.getElementById('localTime'),
     sunrise: document.getElementById('sunrise'),
     sunset: document.getElementById('sunset'),
     aqi: document.getElementById('aqi'),
@@ -633,6 +655,35 @@
   }
 
   const AQI_LABELS = { 1:'Good', 2:'Fair', 3:'Moderate', 4:'Poor', 5:'Very Poor' };
+
+  const WEEKDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  let clockTimer = null;
+  function startClock(tzOffsetSec){
+    if(clockTimer) clearInterval(clockTimer);
+    function tick(){
+      const d = new Date(Date.now() + tzOffsetSec*1000);
+      let h = d.getUTCHours(); const m = d.getUTCMinutes();
+      const ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12; if(h===0) h = 12;
+      els.localTime.textContent = `${WEEKDAYS[d.getUTCDay()]} · ${h}:${m.toString().padStart(2,'0')} ${ampm} local time`;
+    }
+    tick();
+    clockTimer = setInterval(tick, 1000);
+  }
+
+  const SURPRISE_CITIES = ['Kuala Lumpur','Singapore','Paris','Dubai','New York','London','Tokyo','Sydney',
+    'Reykjavik','Cape Town','Rio de Janeiro','Bangkok','Cairo','Moscow','Vancouver','Nairobi','Wellington','Marrakech','Kyoto','Chennai'];
+
+  function saveResultCache(place, current, forecast, aqiData){
+    try{
+      localStorage.setItem('vaanam_last_result', JSON.stringify({ place, current, forecast, aqiData, savedAt: Date.now() }));
+    }catch(e){}
+  }
+  function loadResultCache(){
+    try{
+      const raw = localStorage.getItem('vaanam_last_result');
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
 
   function getRecentCities(){
     try{ return JSON.parse(localStorage.getItem('vaanam_recent_cities') || '[]'); }
@@ -895,6 +946,8 @@
 
   function render(place, current, forecast, aqiData){
     lastCurrent = current; lastForecast = forecast; lastPlace = place; lastAqi = aqiData;
+    startClock(current.timezone || 0);
+    saveResultCache(place, current, forecast, aqiData);
 
     els.placeName.textContent = place.name;
     els.placeCountry.textContent = place.country || '';
@@ -965,17 +1018,26 @@
     els.content.classList.remove('hidden');
   }
 
+  function hasContent(){
+    return !els.content.classList.contains('hidden');
+  }
+
   async function loadPlace(place){
+    const silent = hasContent();
     if(!API_KEY){
-      els.loading.classList.add('hidden');
-      els.error.textContent = 'No OpenWeatherMap API key found. See README for setup.';
-      els.error.classList.remove('hidden');
+      if(!silent){
+        els.loading.classList.add('hidden');
+        els.error.textContent = 'No OpenWeatherMap API key found. See README for setup.';
+        els.error.classList.remove('hidden');
+      }
       return;
     }
-    els.loadingText.textContent = `Watching the sky over ${place.name}…`;
-    els.loading.classList.remove('hidden');
-    els.error.classList.add('hidden');
-    els.content.classList.add('hidden');
+    if(!silent){
+      els.loadingText.textContent = `Watching the sky over ${place.name}…`;
+      els.loading.classList.remove('hidden');
+      els.error.classList.add('hidden');
+      els.content.classList.add('hidden');
+    }
     try{
       const [current, forecast, aqiData] = await Promise.all([
         fetchCurrent(place.lat, place.lon),
@@ -984,52 +1046,70 @@
       ]);
       render(place, current, forecast, aqiData);
     }catch(err){
-      els.loading.classList.add('hidden');
-      els.error.textContent = `Couldn't load weather for "${place.name}". Please try again.`;
-      els.error.classList.remove('hidden');
+      if(!silent){
+        els.loading.classList.add('hidden');
+        els.error.textContent = `Couldn't load weather for "${place.name}". Please try again.`;
+        els.error.classList.remove('hidden');
+      }
+      // If this was a silent background refresh (e.g. cache-then-refresh on load),
+      // fail quietly and keep showing whatever was already on screen.
     }
   }
 
   async function loadCityByName(name){
+    const silent = hasContent();
     if(!API_KEY){
-      els.loading.classList.add('hidden');
-      els.error.textContent = 'No OpenWeatherMap API key found. See README for setup.';
-      els.error.classList.remove('hidden');
+      if(!silent){
+        els.loading.classList.add('hidden');
+        els.error.textContent = 'No OpenWeatherMap API key found. See README for setup.';
+        els.error.classList.remove('hidden');
+      }
       return;
     }
-    els.loadingText.textContent = `Watching the sky over ${name}…`;
-    els.loading.classList.remove('hidden');
-    els.error.classList.add('hidden');
-    els.content.classList.add('hidden');
+    if(!silent){
+      els.loadingText.textContent = `Watching the sky over ${name}…`;
+      els.loading.classList.remove('hidden');
+      els.error.classList.add('hidden');
+      els.content.classList.add('hidden');
+    }
     try{
       const results = await geocodeSearch(name, 1);
       if(!results.length) throw new Error('not found');
       const r = results[0];
       await loadPlace({ lat:r.lat, lon:r.lon, name:r.name, country:r.country || '' });
     }catch(err){
-      els.loading.classList.add('hidden');
-      els.error.textContent = `Couldn't find "${name}". Try a different spelling or a nearby larger city.`;
-      els.error.classList.remove('hidden');
+      if(!silent){
+        els.loading.classList.add('hidden');
+        els.error.textContent = `Couldn't find "${name}". Try a different spelling or a nearby larger city.`;
+        els.error.classList.remove('hidden');
+      }
     }
   }
 
   async function loadCoords(lat, lon){
+    const silent = hasContent();
     if(!API_KEY){
-      els.error.textContent = 'No OpenWeatherMap API key found. See README for setup.';
-      els.error.classList.remove('hidden');
+      if(!silent){
+        els.error.textContent = 'No OpenWeatherMap API key found. See README for setup.';
+        els.error.classList.remove('hidden');
+      }
       return;
     }
-    els.loadingText.textContent = `Watching the sky above you…`;
-    els.loading.classList.remove('hidden');
-    els.error.classList.add('hidden');
-    els.content.classList.add('hidden');
+    if(!silent){
+      els.loadingText.textContent = `Watching the sky above you…`;
+      els.loading.classList.remove('hidden');
+      els.error.classList.add('hidden');
+      els.content.classList.add('hidden');
+    }
     try{
       const current = await fetchCurrent(lat, lon);
       await loadPlace({ lat, lon, name: current.name || 'Your location', country: current.sys ? current.sys.country : '' });
     }catch(err){
-      els.loading.classList.add('hidden');
-      els.error.textContent = `Couldn't load weather for your location.`;
-      els.error.classList.remove('hidden');
+      if(!silent){
+        els.loading.classList.add('hidden');
+        els.error.textContent = `Couldn't load weather for your location.`;
+        els.error.classList.remove('hidden');
+      }
     }
   }
 
@@ -1121,12 +1201,62 @@
     }
   });
 
+  els.surpriseBtn.addEventListener('click', function(){
+    const pick = SURPRISE_CITIES[Math.floor(Math.random() * SURPRISE_CITIES.length)];
+    els.input.value = pick;
+    loadCityByName(pick);
+  });
+
+  els.shareBtn.addEventListener('click', function(){
+    if(!lastPlace) return;
+    const url = `${location.origin}${location.pathname}?city=${encodeURIComponent(lastPlace.name)}`;
+    const original = els.shareBtn.textContent;
+    navigator.clipboard.writeText(url).then(() => {
+      els.shareBtn.textContent = '✓ Link copied!';
+      setTimeout(() => { els.shareBtn.textContent = original; }, 1800);
+    }).catch(() => {
+      els.shareBtn.textContent = url;
+    });
+  });
+
   renderRecentChips();
 
-  // Try to auto-detect location on first load; fall back to Chennai if denied/unavailable/slow.
+  // Simple visit counter using CountAPI (free, no key, no backend needed).
+  // Namespace is unique to this project so it doesn't collide with anyone else's counter.
+  (function trackVisit(){
+    const el = document.getElementById('visitCount');
+    fetch('https://api.countapi.xyz/hit/vaanam-arsath2503/visits')
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        if(data && typeof data.value === 'number'){
+          el.textContent = `👁 ${data.value.toLocaleString()} visits`;
+        }
+      })
+      .catch(() => { /* fail silently — counter is decorative, never block the app */ });
+  })();
+
+  // Initial load priority:
+  // 1. A shared link (?city=...) always wins — someone sent you a specific place on purpose.
+  // 2. Otherwise, paint instantly from the last cached result (if any) so there's no blank wait.
+  // 3. Then try to auto-detect real location in the background; on failure, fall back to the
+  //    cached city if we have one, or Chennai if this is a first-ever visit.
   (function initialLoad(){
+    const params = new URLSearchParams(location.search);
+    const urlCity = params.get('city');
+    const cached = loadResultCache();
+
+    if(urlCity){
+      loadCityByName(urlCity);
+      return;
+    }
+
+    if(cached && cached.place && cached.current && cached.forecast){
+      render(cached.place, cached.current, cached.forecast, cached.aqiData);
+    }
+
     let settled = false;
-    const fallback = () => { if(!settled){ settled = true; loadCityByName('Chennai'); } };
+    const fallbackCity = cached && cached.place ? cached.place.name : 'Chennai';
+    const fallback = () => { if(!settled){ settled = true; loadCityByName(fallbackCity); } };
     if(navigator.geolocation){
       navigator.geolocation.getCurrentPosition(
         pos => { if(!settled){ settled = true; loadCoords(pos.coords.latitude, pos.coords.longitude); } },
